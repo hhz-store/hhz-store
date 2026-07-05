@@ -377,6 +377,7 @@ html{scroll-behavior:smooth}
       <a class="sidebar-link" data-page="orders">Orders</a>
       <a class="sidebar-link" data-page="contact">Contact</a>
       <a class="sidebar-link" data-page="guide">App Guide</a>
+      <a class="sidebar-link" data-page="webguide">Web Guide</a>
       <a class="sidebar-link" data-page="policies">Policies</a>
       <a class="sidebar-link" data-page="about">About HHZ</a>
     </div>
@@ -419,8 +420,57 @@ html{scroll-behavior:smooth}
     <section class="page" id="page-contact" aria-label="Contact"></section>
 
     <section class="page" id="page-guide" aria-label="Guide">
-      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>How to Use HHZ</h1></div>
-      <div id="guideContent" class="guide-page"></div>
+      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>iPhone App Guide</h1></div>
+      <div class="guide-intro">
+        <p>Add HHZ Store to your iPhone home screen for a faster, app-like experience. Open instantly with one tap — no downloads needed.</p>
+      </div>
+      <div class="guide-steps">
+        <div class="guide-step" style="animation-delay:0s">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h3>Open Safari</h3>
+            <p>Launch <span class="highlight">Safari</span> on your iPhone and go to <span class="highlight">hhz-store.github.io/hhz-store</span></p>
+            <div class="icon-row"><div class="ui-icon">🌐</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.05s">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h3>Tap the Share button</h3>
+            <p>At the bottom of the Safari screen, tap the <span class="highlight">Share icon</span> (square with an upward arrow).</p>
+            <div class="icon-row"><div class="ui-icon">⬆️</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.1s">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h3>Scroll &amp; tap "Add to Home Screen"</h3>
+            <p>In the share sheet, scroll down past the app icons and tap <span class="highlight">"Add to Home Screen"</span> (square with a + icon).</p>
+            <div class="icon-row"><div class="ui-icon">➕</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.15s">
+          <div class="guide-step-num">4</div>
+          <div class="guide-step-content">
+            <h3>Tap "Add"</h3>
+            <p>You can edit the name if you like, then tap <span class="highlight">"Add"</span> in the top-right corner. HHZ will be added to your home screen.</p>
+            <div class="icon-row"><div class="ui-icon">✅</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.2s">
+          <div class="guide-step-num">5</div>
+          <div class="guide-step-content">
+            <h3>Launch from Home Screen</h3>
+            <p>Find the <span class="highlight">HHZ</span> icon on your home screen. Tap it anytime to open the store instantly — just like a real app!</p>
+            <div class="icon-row"><div class="ui-icon">🏠</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-webguide" aria-label="Web Guide">
+      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>Web Guide</h1></div>
+      <div id="webguideContent" class="guide-page"></div>
     </section>
 
     <section class="page" id="page-policies" aria-label="Policies">
@@ -748,7 +798,8 @@ var App = {
       case 'checkout': this.renderCheckout(); break;
       case 'orders': this.renderOrders(); break;
       case 'contact': this.renderContact(); break;
-      case 'guide': this.renderGuide(); break;
+      case 'guide': break;
+      case 'webguide': this.renderWebGuide(); break;
       case 'policies': this.renderPolicies(); break;
       case 'about': this.renderAbout(); break;
       case 'admin': this.renderAdmin(); break;
@@ -1099,7 +1150,7 @@ var App = {
     document.getElementById('page-contact').innerHTML = html;
   },
 
-  renderGuide: function(){
+  renderWebGuide: function(){
     var self = this;
     var steps = [
       {
@@ -1138,7 +1189,7 @@ var App = {
       html += '<div class="guide-card"><div class="guide-card-header"><div class="guide-card-num">'+(i+1)+'</div><h3>'+esc(s.title)+'</h3></div><p>'+s.desc+'</p>'+s.mockup+'<div class="g-tip">💡 <strong>Tip:</strong> You can always go back to the home page by tapping the HHZ logo or the Home button in the bottom nav.</div></div>';
     });
     html += '</div>';
-    document.getElementById('guideContent').innerHTML = html;
+    document.getElementById('webguideContent').innerHTML = html;
   },
   renderPolicies: function(){},
   renderAbout: function(){
