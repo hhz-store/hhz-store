@@ -1014,16 +1014,14 @@ var App = {
       } else { html += '<input type="'+f.type+'" id="'+f.id+'" placeholder="'+(f.ph||'')+'">'; }
       html += '</div>';
     });
-    html += '<div class="form-group"><label for="coNotes">Product Details (required) — specify exact model, color, size etc.</label>';
-    html += '<textarea id="coNotes" placeholder="e.g. B30 black, Jordan 4 blue navy, Air Force 1 white"></textarea></div>';
-    html += '<div class="shipping-notice">📋 <strong>Tip:</strong> Be as specific as possible so we can prepare your order correctly.</div>';
+    // Product spec already captured per-item at add-to-cart — no duplicate field needed
     html += '<div style="background:#111;border-radius:10px;padding:14px;border:1px solid #1a1a1a;margin-bottom:16px"><h3 style="font-size:14px;color:#fff;margin-bottom:8px">Order Summary</h3>';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? '<br><span style="font-size:11px;color:#888">📋 '+esc(item.spec)+'</span>' : ''; html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#aaa"><span>'+esc(item.name)+sz+sp+' × '+item.qty+'</span><span>€'+(item.price*item.qty).toFixed(2)+'</span></div>'; });
     html += '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold);border-top:1px solid #222;padding-top:8px;margin-top:4px"><span>Total</span><span>€'+subtotal.toFixed(2)+'</span></div><div style="font-size:12px;color:#888;margin-top:6px">💬 Final price negotiable via WhatsApp</div></div>';
     html += '<div class="form-group" style="background:rgba(255,255,255,.03);border:1px solid #222;border-radius:10px;padding:14px;margin-bottom:16px">';
     html += '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#aaa;line-height:1.5">';
     html += '<input type="checkbox" id="coTerms" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--gold)">';
-    html += '<span>I accept the <strong style="color:var(--gold)">Terms &amp; Conditions</strong>. I understand that: orders can be cancelled within 24 hours; after shipment, <strong style="color:#e74c3c">no refunds</strong> unless the package is lost or the product has missing parts; shipping is free worldwide.</span>';
+    html += '<span>I accept the <strong style="color:var(--gold)">Terms &amp; Conditions</strong>. I understand that: orders can be cancelled within 24 hours; after shipment, <strong>no refunds</strong> unless the package is lost or the product has missing parts; shipping is free worldwide.</span>';
     html += '</label></div>';
     html += '<button class="btn-checkout" id="placeOrder">Place Order via WhatsApp</button></div>';
     document.getElementById('page-checkout').innerHTML = html;
@@ -1032,40 +1030,27 @@ var App = {
   placeOrder: function(){
     var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var country = g('coCountry'), stateF = g('coState'), city = g('coCity'), district = g('coDistrict');
-    var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode'), notes = g('coNotes');
+    var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode');
     var terms = document.getElementById('coTerms');
     if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
     if(!country || !city || !name || !phone || !address){ this.toast('Please fill in all required fields'); return; }
-    if(!notes){ this.toast('Please specify the product details (model, color, etc.)'); return; }
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
     var orderId = 'HHZ-'+Date.now().toString(36).toUpperCase();
     var msg = '🛒 *NEW ORDER*\nOrder: '+orderId+'\n\n*ITEMS:*\n';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? ' — '+item.spec : ''; msg += '• '+item.name+sz+sp+' × '+item.qty+' = €'+(item.price*item.qty).toFixed(2)+'\n'; });
-    msg += '\n📋 *EXTRA NOTES:*\n'+notes+'\n\n';
     msg += '📦 *Subtotal:* €'+subtotal.toFixed(2)+'\n🚚 *Shipping:* FREE\n💰 *Total:* €'+subtotal.toFixed(2)+'\n\n*SHIPPING:*\n👤 '+name+'\n📞 '+phone+'\n📍 '+address+', '+district+', '+city+', '+stateF+', '+country+' '+postcode+'\n\n⏱ *Est. delivery:* 8-15 business days\n\n📋 *Policy:* Cancel within 24h · No refunds after shipment unless lost or missing parts\n\n💬 *Note:* Prices are negotiable. Please confirm total.';
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
-      notes:notes, total:subtotal, subtotal:subtotal, shipping:0,
+      total:subtotal, subtotal:subtotal, shipping:0,
       shippingInfo:{name:name, phone:phone, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
       status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString()
     };
-    DB.collection('orders').add(order).then(function(){
-      state.orders.unshift(order);
-      saveOrders(state.orders);
-      state.cart = []; saveCart(state.cart);
-      App.updateBadge();
-      var waMsg = encodeURIComponent(msg);
-      window.open('https://wa.me/32488225144?text='+waMsg, '_blank');
-      App.toast('Order placed! Redirecting to WhatsApp...');
-      App.go('orders');
-    }).catch(function(){
-      state.orders.unshift(order);
-      saveOrders(state.orders);
-      state.cart = []; saveCart(state.cart);
-      App.updateBadge();
-      window.open('https://wa.me/32488225144?text='+encodeURIComponent(msg), '_blank');
-      App.go('orders');
-    });
+    state.orders.unshift(order);
+    saveOrders(state.orders);
+    state.cart = []; saveCart(state.cart);
+    App.updateBadge();
+    var waMsg = encodeURIComponent(msg);
+    window.location.href = 'https://wa.me/32488225144?text='+waMsg;
   },
 
   cancelOrder: function(orderId){
