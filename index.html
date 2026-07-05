@@ -316,6 +316,37 @@ html{scroll-behavior:smooth}
 .role-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}
 .role-badge.admin{background:rgba(255,255,255,.2);color:var(--gold)}
 .role-badge.worker{background:rgba(46,204,113,.15);color:#2ecc71}
+/* Guide Styles */
+.guide-page{padding-bottom:40px}
+.guide-step-wrap{display:flex;flex-direction:column;gap:24px;padding:16px}
+.guide-card{background:#111;border-radius:16px;border:1px solid #1a1a1a;overflow:hidden}
+.guide-card-header{display:flex;align-items:center;gap:12px;padding:16px 16px 0}
+.guide-card-num{width:32px;height:32px;border-radius:50%;background:var(--gold);color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.guide-card h3{font-size:16px;font-weight:600;color:#fff}
+.guide-card p{font-size:13px;color:#aaa;line-height:1.6;padding:8px 16px 12px}
+.guide-mockup{position:relative;background:#0a0a0a;margin:0 12px 12px;border-radius:12px;border:1px solid #222;overflow:hidden;max-width:360px}
+.guide-mockup-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#0f0f0f;border-bottom:1px solid #222}
+.guide-mockup-header .g-logo{font-family:'Playfair Display',Georgia,serif;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px;border:1px solid var(--gold);padding:2px 8px;border-radius:3px}
+.guide-mockup-header .g-icons{display:flex;gap:6px}
+.guide-mockup-header .g-icons span{width:18px;height:18px;border-radius:4px;background:#1a1a1a;border:1px solid #333}
+.guide-mockup-body{padding:12px}
+.guide-mockup-hero{height:60px;border-radius:8px;background:linear-gradient(135deg,#222,#1a1a1a);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#666;letter-spacing:2px}
+.guide-mockup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.guide-mockup-product{background:#151515;border-radius:6px;padding:8px;border:1px solid #1a1a1a}
+.guide-mockup-product .g-img{height:40px;border-radius:4px;background:#1a1a1a;margin-bottom:4px}
+.guide-mockup-product .g-line{height:6px;border-radius:3px;background:#1a1a1a;margin-bottom:3px}
+.guide-mockup-product .g-line.short{width:60%}
+.guide-mockup-product .g-line.gold{background:var(--gold);width:40%;height:6px;border-radius:3px}
+.guide-mockup-nav{display:flex;justify-content:space-around;padding:6px 12px;background:#0f0f0f;border-top:1px solid #222}
+.guide-mockup-nav span{width:16px;height:16px;border-radius:4px;background:#1a1a1a}
+.guide-mockup-nav span.active{background:var(--gold)}
+.guide-highlight{position:relative}
+.guide-highlight::after{content:'';position:absolute;top:-4px;left:-4px;right:-4px;bottom:-4px;border:2px solid var(--gold);border-radius:8px;animation:pulse 2s ease-in-out infinite;pointer-events:none}
+.guide-card-detail{padding:12px;background:#0f0f0f;margin:0 12px 12px;border-radius:8px;border:1px solid #222}
+.guide-card-detail .g-detail-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#888}
+.guide-card-detail .g-detail-row .val{color:var(--gold);font-weight:600}
+.guide-card .g-tip{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;margin:0 12px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:12px;color:#888}
+.guide-card .g-tip strong{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -388,52 +419,8 @@ html{scroll-behavior:smooth}
     <section class="page" id="page-contact" aria-label="Contact"></section>
 
     <section class="page" id="page-guide" aria-label="Guide">
-      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>iPhone App Guide</h1></div>
-      <div class="guide-intro">
-        <p>Add HHZ Store to your iPhone home screen for a faster, app-like experience. Open instantly with one tap — no downloads needed.</p>
-      </div>
-      <div class="guide-steps">
-        <div class="guide-step" style="animation-delay:0s">
-          <div class="guide-step-num">1</div>
-          <div class="guide-step-content">
-            <h3>Open Safari</h3>
-            <p>Launch <span class="highlight">Safari</span> on your iPhone and go to <span class="highlight">hhz-store.github.io/hhz-store</span></p>
-            <div class="icon-row"><div class="ui-icon">🌐</div></div>
-          </div>
-        </div>
-        <div class="guide-step" style="animation-delay:.05s">
-          <div class="guide-step-num">2</div>
-          <div class="guide-step-content">
-            <h3>Tap the Share button</h3>
-            <p>At the bottom of the Safari screen, tap the <span class="highlight">Share icon</span> (square with an upward arrow).</p>
-            <div class="icon-row"><div class="ui-icon">⬆️</div></div>
-          </div>
-        </div>
-        <div class="guide-step" style="animation-delay:.1s">
-          <div class="guide-step-num">3</div>
-          <div class="guide-step-content">
-            <h3>Scroll &amp; tap "Add to Home Screen"</h3>
-            <p>In the share sheet, scroll down past the app icons and tap <span class="highlight">"Add to Home Screen"</span> (square with a + icon).</p>
-            <div class="icon-row"><div class="ui-icon">➕</div></div>
-          </div>
-        </div>
-        <div class="guide-step" style="animation-delay:.15s">
-          <div class="guide-step-num">4</div>
-          <div class="guide-step-content">
-            <h3>Tap "Add"</h3>
-            <p>You can edit the name if you like, then tap <span class="highlight">"Add"</span> in the top-right corner. HHZ will be added to your home screen.</p>
-            <div class="icon-row"><div class="ui-icon">✅</div></div>
-          </div>
-        </div>
-        <div class="guide-step" style="animation-delay:.2s">
-          <div class="guide-step-num">5</div>
-          <div class="guide-step-content">
-            <h3>Launch from Home Screen</h3>
-            <p>Find the <span class="highlight">HHZ</span> icon on your home screen. Tap it anytime to open the store instantly — just like a real app!</p>
-            <div class="icon-row"><div class="ui-icon">🏠</div></div>
-          </div>
-        </div>
-      </div>
+      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>How to Use HHZ</h1></div>
+      <div id="guideContent" class="guide-page"></div>
     </section>
 
     <section class="page" id="page-policies" aria-label="Policies">
@@ -1112,7 +1099,47 @@ var App = {
     document.getElementById('page-contact').innerHTML = html;
   },
 
-  renderGuide: function(){},
+  renderGuide: function(){
+    var self = this;
+    var steps = [
+      {
+        title: 'Browse the Home Page',
+        desc: 'The home screen shows featured products, popular shoes, and premium colognes. Tap any product card to view details, or use the category pills to jump to a specific section.',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div class="guide-mockup-hero">PREMIUM COLLECTION</div><div class="guide-mockup-grid"><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div></div></div><div class="guide-mockup-nav"><span></span><span></span><span class="active"></span><span></span><span></span></div></div>'
+      },
+      {
+        title: 'Browse & Filter Products',
+        desc: 'Go to Categories to browse all products. Use the search bar to find specific items, or tap a category pill (👟 Shoes, 🧴 Colognes) to filter. Tap any product to open its detail page.',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div style="display:flex;gap:4px;margin-bottom:8px;overflow-x:auto"><div style="padding:6px 12px;border-radius:12px;background:var(--gold);color:#0a0a0a;font-size:10px;font-weight:600;white-space:nowrap">All</div><div style="padding:6px 12px;border-radius:12px;background:#1a1a1a;color:#888;font-size:10px;white-space:nowrap">👟 Shoes</div><div style="padding:6px 12px;border-radius:12px;background:#1a1a1a;color:#888;font-size:10px;white-space:nowrap">🧴 Colognes</div></div><div class="guide-mockup-grid"><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div><div class="guide-mockup-product"><div class="g-img"></div><div class="g-line"></div><div class="g-line short"></div><div class="g-line gold"></div></div></div></div><div class="guide-mockup-nav"><span></span><span class="active"></span><span></span><span></span><span></span></div></div>'
+      },
+      {
+        title: 'Choose Size & Add to Cart',
+        desc: 'On the product detail page, select your EU size (for shoes), choose quantity, and type the exact product model/color you want. Then tap "Add to Cart". Your item will be saved with all details.',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div style="height:50px;border-radius:6px;background:#1a1a1a;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#555">Product Image</div><div style="margin-bottom:6px"><div style="height:6px;border-radius:3px;background:#1a1a1a;width:70%;margin-bottom:4px"></div><div style="height:8px;border-radius:3px;background:var(--gold);width:30%"></div></div><div class="guide-highlight" style="margin-bottom:6px;display:flex;gap:4px;flex-wrap:wrap;padding:4px 0"><div style="padding:4px 8px;border-radius:4px;background:#1a1a1a;font-size:10px;color:#aaa">40</div><div style="padding:4px 8px;border-radius:4px;background:#1a1a1a;font-size:10px;color:#aaa">41</div><div style="padding:4px 8px;border-radius:4px;background:var(--gold);color:#0a0a0a;font-size:10px;font-weight:600">42</div><div style="padding:4px 8px;border-radius:4px;background:#1a1a1a;font-size:10px;color:#aaa">43</div></div><div style="display:flex;gap:8px;margin-bottom:8px"><div style="padding:4px 10px;border-radius:4px;background:#1a1a1a;font-size:12px">−</div><div style="font-size:12px;color:#fff;padding:4px 0">1</div><div style="padding:4px 10px;border-radius:4px;background:#1a1a1a;font-size:12px">+</div></div><div style="padding:8px;border-radius:6px;background:#151515;border:1px solid #222;margin-bottom:8px;font-size:10px;color:#888">B30 black, Jordan 4...</div><div style="padding:10px;border-radius:8px;background:var(--gold);color:#0a0a0a;font-size:12px;font-weight:700;text-align:center">Add to Cart</div></div><div class="guide-mockup-nav"><span></span><span></span><span class="active"></span><span></span><span></span></div></div>'
+      },
+      {
+        title: 'Review Your Cart',
+        desc: 'Tap the cart icon to review your items. You can adjust quantities or remove items. Each item shows your size and product specification. The total and shipping (free worldwide) are displayed.',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #1a1a1a"><div style="width:36px;height:36px;border-radius:6px;background:#1a1a1a;flex-shrink:0"></div><div style="flex:1"><div style="height:6px;border-radius:3px;background:#1a1a1a;width:70%;margin-bottom:3px"></div><div style="height:5px;border-radius:3px;background:#222;width:50%;margin-bottom:3px"></div><div style="display:flex;gap:6px"><div style="padding:2px 6px;border-radius:3px;background:#1a1a1a;font-size:8px">−</div><div style="font-size:8px;color:#fff">1</div><div style="padding:2px 6px;border-radius:3px;background:#1a1a1a;font-size:8px">+</div></div></div><div style="height:6px;border-radius:3px;background:var(--gold);width:30px"></div></div><div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #1a1a1a"><div style="width:36px;height:36px;border-radius:6px;background:#1a1a1a;flex-shrink:0"></div><div style="flex:1"><div style="height:6px;border-radius:3px;background:#1a1a1a;width:70%;margin-bottom:3px"></div><div style="height:5px;border-radius:3px;background:#222;width:50%;margin-bottom:3px"></div><div style="display:flex;gap:6px"><div style="padding:2px 6px;border-radius:3px;background:#1a1a1a;font-size:8px">−</div><div style="font-size:8px;color:#fff">2</div><div style="padding:2px 6px;border-radius:3px;background:#1a1a1a;font-size:8px">+</div></div></div><div style="height:6px;border-radius:3px;background:var(--gold);width:30px"></div></div><div style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;font-size:10px;color:#888"><span>Subtotal</span><span style="color:var(--gold);font-weight:600">€215.00</span></div><div style="padding:8px 0;display:flex;justify-content:space-between;font-size:10px;color:#888"><span>Shipping</span><span style="color:#2ecc71">FREE</span></div><div style="padding:10px;border-radius:8px;background:#1a1a1a;font-size:11px;color:var(--gold);text-align:center;margin-top:6px">💬 All prices negotiable</div></div><div class="guide-mockup-nav"><span></span><span></span><span></span><span class="active"></span><span></span></div></div>'
+      },
+      {
+        title: 'Fill in Shipping Info',
+        desc: 'In checkout, enter your shipping details (country, city, name, phone, address). Your cart items and specs are already included. Accept the terms, then tap "Place Order via WhatsApp".',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div class="guide-highlight" style="padding:6px;border-radius:6px;background:#151515;border:1px solid #222;margin-bottom:6px"><div style="height:5px;border-radius:3px;background:#1a1a1a;width:30%;margin-bottom:4px"></div><div style="height:8px;border-radius:4px;background:#1a1a1a;width:100%"></div></div><div style="padding:6px;border-radius:6px;background:#151515;border:1px solid #222;margin-bottom:6px"><div style="height:5px;border-radius:3px;background:#1a1a1a;width:20%;margin-bottom:4px"></div><div style="height:8px;border-radius:4px;background:#1a1a1a;width:100%"></div></div><div style="padding:6px;border-radius:6px;background:#151515;border:1px solid #222;margin-bottom:6px"><div style="height:5px;border-radius:3px;background:#1a1a1a;width:25%;margin-bottom:4px"></div><div style="height:8px;border-radius:4px;background:#1a1a1a;width:100%"></div></div><div style="padding:6px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid #222;margin-bottom:8px"><div style="display:flex;gap:6px;align-items:flex-start;font-size:9px;color:#888"><div style="width:12px;height:12px;border:1px solid #888;border-radius:2px;flex-shrink:0;margin-top:1px"></div><span>I accept the <strong style="color:var(--gold)">Terms & Conditions</strong>...</span></div></div><div style="padding:10px;border-radius:8px;background:#fff;color:#0a0a0a;font-size:11px;font-weight:700;text-align:center">Place Order via WhatsApp</div></div><div class="guide-mockup-nav"><span></span><span></span><span></span><span></span><span class="active"></span></div></div>'
+      },
+      {
+        title: 'Order Confirmed via WhatsApp',
+        desc: 'After placing, you\'re redirected to WhatsApp with your full order details pre-filled. Send it to confirm. Your order is saved in "Orders" where you can view history and cancel within 24h if needed.',
+        mockup: '<div class="guide-mockup"><div class="guide-mockup-header"><span class="g-logo">HHZ</span><div class="g-icons"><span></span><span></span></div></div><div class="guide-mockup-body"><div style="background:#0d0d0d;border-radius:8px;border:1px solid #1a1a1a;padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:10px"><span style="color:var(--gold);font-weight:600">HHZ-ABC123</span><span style="color:#aaa">Pending</span></div><div style="font-size:9px;color:#666;margin-bottom:4px">Jul 6, 2026</div><div style="font-size:10px;color:#aaa;margin-bottom:4px">Dior B23 (EU 42) × 1, LV Trainer...</div><div style="font-size:12px;color:var(--gold);font-weight:700">€215.00</div></div><div style="margin-top:8px;display:flex;align-items:center;gap:8px;background:#0d0d0d;border-radius:8px;padding:8px;border:1px solid #1a1a1a"><div style="font-size:20px">💬</div><div style="font-size:10px;color:#aaa">Message sent via WhatsApp with all order details</div></div></div><div class="guide-mockup-nav"><span></span><span></span><span></span><span class="active"></span><span></span></div></div>'
+      }
+    ];
+    var html = '<div style="padding:0 16px;margin-bottom:16px"><p style="color:#888;font-size:13px;line-height:1.6">Follow these steps to shop on HHZ. Each step shows a preview of what you\'ll see on the website.</p></div><div class="guide-step-wrap">';
+    steps.forEach(function(s, i){
+      html += '<div class="guide-card"><div class="guide-card-header"><div class="guide-card-num">'+(i+1)+'</div><h3>'+esc(s.title)+'</h3></div><p>'+s.desc+'</p>'+s.mockup+'<div class="g-tip">💡 <strong>Tip:</strong> You can always go back to the home page by tapping the HHZ logo or the Home button in the bottom nav.</div></div>';
+    });
+    html += '</div>';
+    document.getElementById('guideContent').innerHTML = html;
+  },
   renderPolicies: function(){},
   renderAbout: function(){
     document.getElementById('aboutStats').innerHTML = '<div class="stat-card" style="animation:scaleIn .5s ease both"><div class="num">★★★★★</div><div class="label">4.8 Rating</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .1s"><div class="num">1,000+</div><div class="label">Happy Customers</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .2s"><div class="num">80+</div><div class="label">Countries</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .3s"><div class="num">🌍</div><div class="label">Worldwide Shipping</div></div>';
