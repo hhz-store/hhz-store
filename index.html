@@ -107,6 +107,21 @@ html{scroll-behavior:smooth}
 .policy-card p{font-size:13px;color:#aaa;line-height:1.7}
 .policy-card ul{margin:6px 0 0 18px;color:#aaa;font-size:13px;line-height:1.8}
 .policy-card ul li::marker{color:var(--gold)}
+.guide-intro{padding:16px;text-align:center;animation:slideUp .5s ease both}
+.guide-intro p{color:#aaa;font-size:14px;line-height:1.7;max-width:480px;margin:0 auto}
+.guide-steps{padding:8px 16px 20px}
+.guide-step{background:linear-gradient(145deg,#111,#161616);border-radius:14px;padding:18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.06);display:flex;gap:14px;align-items:flex-start;animation:slideUp .5s ease both;transition:transform .3s ease}
+.guide-step:hover{transform:translateY(-2px)}
+.guide-step-num{width:32px;height:32px;border-radius:50%;background:var(--gold);color:#0a0a0a;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.guide-step-content{flex:1;min-width:0}
+.guide-step-content h3{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px}
+.guide-step-content p{font-size:13px;color:#aaa;line-height:1.6}
+.guide-step-content .highlight{color:var(--gold);font-weight:500}
+.guide-step-content .icon-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.guide-step-content .icon-row .ui-icon{width:44px;height:44px;border-radius:10px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,.08)}
+.guide-visual-wrap{position:relative;padding:12px 0}
+.guide-visual-wrap img{max-width:240px;width:100%;border-radius:16px;margin:0 auto;display:block;border:1px solid rgba(255,255,255,.08)}
+.guide-visual-wrap .arrow-down{text-align:center;font-size:24px;color:var(--gold);padding:8px 0;opacity:.6}
 .section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
 .section-link{color:var(--gold);font-size:13px;font-weight:500;cursor:pointer;background:none}
 .category-pills{display:flex;gap:8px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none}
@@ -329,6 +344,7 @@ html{scroll-behavior:smooth}
       <a class="sidebar-link" data-page="cart">Cart</a>
       <a class="sidebar-link" data-page="orders">Orders</a>
       <a class="sidebar-link" data-page="contact">Contact</a>
+      <a class="sidebar-link" data-page="guide">Guide</a>
       <a class="sidebar-link" data-page="policies">Policies</a>
       <a class="sidebar-link" data-page="about">About HHZ</a>
     </div>
@@ -370,6 +386,55 @@ html{scroll-behavior:smooth}
 
     <section class="page" id="page-contact" aria-label="Contact"></section>
 
+    <section class="page" id="page-guide" aria-label="Guide">
+      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>iPhone App Guide</h1></div>
+      <div class="guide-intro">
+        <p>Add HHZ Store to your iPhone home screen for a faster, app-like experience. Open instantly with one tap — no downloads needed.</p>
+      </div>
+      <div class="guide-steps">
+        <div class="guide-step" style="animation-delay:0s">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h3>Open Safari</h3>
+            <p>Launch <span class="highlight">Safari</span> on your iPhone and go to <span class="highlight">hhz-store.github.io/hhz-store</span></p>
+            <div class="icon-row"><div class="ui-icon">🌐</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.05s">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h3>Tap the Share button</h3>
+            <p>At the bottom of the Safari screen, tap the <span class="highlight">Share icon</span> (square with an upward arrow).</p>
+            <div class="icon-row"><div class="ui-icon">⬆️</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.1s">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h3>Scroll &amp; tap "Add to Home Screen"</h3>
+            <p>In the share sheet, scroll down past the app icons and tap <span class="highlight">"Add to Home Screen"</span> (square with a + icon).</p>
+            <div class="icon-row"><div class="ui-icon">➕</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.15s">
+          <div class="guide-step-num">4</div>
+          <div class="guide-step-content">
+            <h3>Tap "Add"</h3>
+            <p>You can edit the name if you like, then tap <span class="highlight">"Add"</span> in the top-right corner. HHZ will be added to your home screen.</p>
+            <div class="icon-row"><div class="ui-icon">✅</div></div>
+          </div>
+        </div>
+        <div class="guide-step" style="animation-delay:.2s">
+          <div class="guide-step-num">5</div>
+          <div class="guide-step-content">
+            <h3>Launch from Home Screen</h3>
+            <p>Find the <span class="highlight">HHZ</span> icon on your home screen. Tap it anytime to open the store instantly — just like a real app!</p>
+            <div class="icon-row"><div class="ui-icon">🏠</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="page" id="page-policies" aria-label="Policies">
       <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>Policies</h1></div>
       <div class="policy-section">
@@ -384,7 +449,7 @@ html{scroll-behavior:smooth}
           <p>Orders can be cancelled within 24 hours of placement at no charge. After 24 hours, the order enters processing and cancellation may not be possible. To request a cancellation, message us on WhatsApp with your order ID.</p>
         </div>
         <div class="policy-card">
-          <div class="policy-icon">⚠️</div>
+          <div class="policy-icon">📋</div>
           <h3>Refund Policy</h3>
           <p>All sales are final. No refunds are accepted after the order has been placed and confirmed, except in the following cases:</p>
           <ul>
@@ -694,6 +759,7 @@ var App = {
       case 'checkout': this.renderCheckout(); break;
       case 'orders': this.renderOrders(); break;
       case 'contact': this.renderContact(); break;
+      case 'guide': this.renderGuide(); break;
       case 'policies': this.renderPolicies(); break;
       case 'about': this.renderAbout(); break;
       case 'admin': this.renderAdmin(); break;
@@ -1045,6 +1111,7 @@ var App = {
     document.getElementById('page-contact').innerHTML = html;
   },
 
+  renderGuide: function(){},
   renderPolicies: function(){},
   renderAbout: function(){
     document.getElementById('aboutStats').innerHTML = '<div class="stat-card" style="animation:scaleIn .5s ease both"><div class="num">★★★★★</div><div class="label">4.8 Rating</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .1s"><div class="num">3,500+</div><div class="label">Happy Customers</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .2s"><div class="num">80+</div><div class="label">Countries</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .3s"><div class="num">🌍</div><div class="label">Worldwide Shipping</div></div>';
