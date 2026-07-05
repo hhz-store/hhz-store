@@ -1241,7 +1241,8 @@ var App = {
     html += '<button class="btn-save" onclick="App.saveSettings()">Save Settings</button></div>';
     html += '<div style="margin-top:24px"><h4 style="color:#aaa;font-size:14px;margin-bottom:8px">Data Management</h4>';
     html += '<button class="btn-add" onclick="App.exportData()" style="margin-bottom:8px">📥 Export Data (JSON)</button>';
-    html += '<button class="btn-add" onclick="App.seedProducts()" style="background:#1a1a1a;color:#fff">🌱 Seed Default Products</button></div>';
+    html += '<button class="btn-add" onclick="App.seedProducts()" style="background:#1a1a1a;color:#fff;margin-bottom:8px">🌱 Seed Missing Products</button>';
+    html += '<button class="btn-add" onclick="App.resetProducts()" style="background:rgba(231,76,60,.15);color:var(--danger)">🔄 Reset All Products (delete & re-seed)</button></div>';
     document.getElementById('adminSettings').innerHTML = html;
   },
 
@@ -1274,6 +1275,22 @@ var App = {
       this.toast('Default products added');
       this.loadData(function(){ self.renderAdmin(); });
     }
+  },
+
+  resetProducts: function(){
+    if(!confirm('⚠️ This will DELETE all products and re-seed default ones. Continue?')) return;
+    var self = this;
+    var batch = DB.batch();
+    state.products.forEach(function(p){
+      batch.delete(DB.collection('products').doc(p.id));
+    });
+    batch.commit().then(function(){
+      state.products = [];
+      self.seedProducts();
+    }).catch(function(){
+      state.products = [];
+      self.seedProducts();
+    });
   },
 
   exportData: function(){
