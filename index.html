@@ -792,7 +792,7 @@ var App = {
   startCount: function(){
     var el = document.getElementById('trustCount'); if(!el) return;
     var i = 0;
-    var iv = setInterval(function(){ i+=37; if(i>3500){ i=3500; clearInterval(iv); } el.textContent = i.toLocaleString()+'+'; }, 20);
+    var iv = setInterval(function(){ i+=11; if(i>1000){ i=1000; clearInterval(iv); } el.textContent = i.toLocaleString()+'+'; }, 20);
   },
 
   renderHome: function(){
@@ -1115,7 +1115,7 @@ var App = {
   renderGuide: function(){},
   renderPolicies: function(){},
   renderAbout: function(){
-    document.getElementById('aboutStats').innerHTML = '<div class="stat-card" style="animation:scaleIn .5s ease both"><div class="num">★★★★★</div><div class="label">4.8 Rating</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .1s"><div class="num">3,500+</div><div class="label">Happy Customers</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .2s"><div class="num">80+</div><div class="label">Countries</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .3s"><div class="num">🌍</div><div class="label">Worldwide Shipping</div></div>';
+    document.getElementById('aboutStats').innerHTML = '<div class="stat-card" style="animation:scaleIn .5s ease both"><div class="num">★★★★★</div><div class="label">4.8 Rating</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .1s"><div class="num">1,000+</div><div class="label">Happy Customers</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .2s"><div class="num">80+</div><div class="label">Countries</div></div><div class="stat-card" style="animation:scaleIn .5s ease both .3s"><div class="num">🌍</div><div class="label">Worldwide Shipping</div></div>';
   },
 
   renderAdmin: function(){
