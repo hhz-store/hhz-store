@@ -957,19 +957,22 @@ var App = {
     else html += '<input id="af_sizes" type="hidden" value="">';
     html += '<div style="margin-top:16px;border-top:1px solid #222;padding-top:12px">';
     html += '<label>Product Images — first image is the main photo</label>';
-    html += '<div class="img-upload-area" id="imgDropArea" onclick="document.getElementById(\'imgFileInput\').click()">';
-    html += '<div class="icon">📷</div><p>Click or drag images here (max 10)</p></div>';
-    html += '<input type="file" id="imgFileInput" accept="image/*" multiple style="display:none">';
+    html += '<div class="img-upload-area" id="imgDropArea">';
+    html += '<div class="icon">📷</div><p id="imgUploadText">Tap to select photos (max 10)</p></div>';
+    html += '<input type="file" id="imgFileInput" accept="image/*,.jpg,.jpeg,.png,.heic,.webp" multiple style="display:none">';
+    html += '<div id="uploadProgress" style="display:none;text-align:center;padding:8px;color:var(--gold);font-size:13px">⏳ Uploading...</div>';
     html += '<div class="img-count" id="imgCount">'+pending+'/10 images</div>';
     html += '<div class="img-preview-grid" id="imgPreviewGrid"></div></div>';
     html += '<button class="btn-save" onclick="'+action+'">'+(p?'Update Product':'Add Product')+'</button></div>';
     document.getElementById('adminAdd').innerHTML = html;
     this._rebuildImgPreview(state.editId);
     var da = document.getElementById('imgDropArea');
+    var fi = document.getElementById('imgFileInput');
+    da.addEventListener('click', function(){ fi.click(); });
     da.ondragover = function(e){ e.preventDefault(); da.classList.add('dragover'); };
     da.ondragleave = function(){ da.classList.remove('dragover'); };
-    da.ondrop = function(e){ e.preventDefault(); da.classList.remove('dragover'); self.handleImgUpload(e.dataTransfer.files); };
-    document.getElementById('imgFileInput').addEventListener('change', function(e){ self.handleImgUpload(e.target.files); });
+    da.ondrop = function(e){ e.preventDefault(); da.classList.remove('dragover'); if(e.dataTransfer.files.length) self.handleImgUpload(e.dataTransfer.files); };
+    fi.addEventListener('change', function(e){ if(e.target.files.length) self.handleImgUpload(e.target.files); e.target.value = ''; });
   },
 
   handleImgUpload: function(files){
@@ -978,29 +981,83 @@ var App = {
     var cnt = App.pendingImgCount || 0;
     var allowed = Math.min(files.length, 10 - cnt);
     if(allowed <= 0){ self.toast('Max 10 images per product'); return; }
+    var progress = document.getElementById('uploadProgress');
+    if(progress) progress.style.display = 'block';
+    var completed = 0;
     for(var fi = 0; fi < allowed; fi++){
       (function(file){
-        self.uploadToFirebase(file, function(url){
-          App.pendingImgs = App.pendingImgs || [];
-          App.pendingImgs.push(url);
-          App.pendingImgCount = (App.pendingImgCount || 0) + 1;
-          self._rebuildImgPreview(state.editId);
+        self.compressAndUpload(file, function(url, err){
+          if(err){
+            self.toast('Upload error: '+err);
+          } else if(url){
+            App.pendingImgs = App.pendingImgs || [];
+            App.pendingImgs.push(url);
+            App.pendingImgCount = (App.pendingImgCount || 0) + 1;
+            self._rebuildImgPreview(state.editId);
+          }
+          completed++;
+          if(completed === allowed){
+            if(progress) progress.style.display = 'none';
+            self.toast(completed+' image'+(completed>1?'s':'')+' uploaded');
+          }
         });
       })(files[fi]);
     }
   },
 
-  uploadToFirebase: function(file, cb){
+  compressAndUpload: function(file, cb){
+    var self = this;
+    if(file.size > 5 * 1024 * 1024){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var c = document.createElement('canvas');
+          var MAX = 1200;
+          var w = img.width, h = img.height;
+          if(w > MAX || h > MAX){
+            if(w > h){ h *= MAX/w; w = MAX; }
+            else { w *= MAX/h; h = MAX; }
+          }
+          c.width = w; c.height = h;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          var quality = 0.7;
+          var data = c.toDataURL('image/jpeg', quality);
+          var blob = self.dataURLToBlob(data);
+          var name = file.name.replace(/\.[^.]+$/, '.jpg');
+          self._uploadToStorage(blob, name, cb);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      self._uploadToStorage(file, file.name, cb);
+    }
+  },
+
+  dataURLToBlob: function(dataURL){
+    var parts = dataURL.split(',');
+    var mime = parts[0].match(/:(.*?);/)[1];
+    var bytes = atob(parts[1]);
+    var ab = new ArrayBuffer(bytes.length);
+    var ia = new Uint8Array(ab);
+    for(var i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+    return new Blob([ab], { type: mime });
+  },
+
+  _uploadToStorage: function(file, name, cb){
     var self = this;
     var pid = state.editId || 'tmp_'+Date.now();
-    var ref = STORAGE.ref('products/'+pid+'/'+Date.now()+'_'+file.name);
+    var ext = name.split('.').pop();
+    var ref = STORAGE.ref('products/'+pid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,6)+'.'+(ext||'jpg'));
     var task = ref.put(file);
     task.then(function(snapshot){
       return ref.getDownloadURL();
     }).then(function(url){
-      cb(url);
+      cb(url, null);
     }).catch(function(err){
-      self.toast('Upload failed');
+      cb(null, err.message || 'Storage upload failed. Check Firebase Storage rules.');
     });
   },
 
