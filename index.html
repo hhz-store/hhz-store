@@ -417,22 +417,21 @@ var App = {
       snap.forEach(function(d){ state.products.push(d.data()); });
       if(!state.products.length){
         state.products = [
-          { id:'p1', name:'Nike Air Max Horizon', category:'shoes', price:149.99, originalPrice:189.99, description:'Premium athletic sneakers with advanced cushioning technology.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Featured', rating:4.8, reviews:124, images:[] },
-          { id:'p2', name:'Luxury Runner Pro', category:'shoes', price:229.99, description:'High-performance running shoes with responsive cushioning.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'New', rating:4.9, reviews:86, images:[] },
-          { id:'p3', name:'Classic Court Low', category:'shoes', price:129.99, originalPrice:159.99, description:'Timeless low-top sneakers with premium leather.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:203, images:[] },
-          { id:'p4', name:'Urban Street Mid', category:'shoes', price:189.99, description:'Mid-top streetwear sneakers with bold design.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Popular', rating:4.6, reviews:67, images:[] },
-          { id:'p5', name:'Elite Basketball Hi', category:'shoes', price:259.99, originalPrice:299.99, description:'High-top basketball shoes for on-court performance.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.9, reviews:42, images:[] },
-          { id:'p6', name:'Casual Slip-On', category:'shoes', price:99.99, description:'Effortless slip-on sneakers for everyday comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.5, reviews:156, images:[] },
-          { id:'p7', name:'Trail Blazer Boot', category:'shoes', price:199.99, originalPrice:249.99, description:'Rugged hiking boots built for adventure.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Sale', rating:4.7, reviews:93, images:[] },
-          { id:'p8', name:'Velocity Running Lite', category:'shoes', price:169.99, description:'Ultra-lightweight running shoes for speed.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'New', rating:4.8, reviews:78, images:[] },
-          { id:'p9', name:'Midnight Oud', category:'colognes', price:89.99, description:'Luxurious woody fragrance with rare oud and amber.', sizes:null, badge:'Bestseller', rating:4.9, reviews:214, images:[] },
-          { id:'p10', name:'Silver Coast', category:'colognes', price:74.99, originalPrice:94.99, description:'Fresh aquatic scent with bergamot and sea salt.', sizes:null, rating:4.6, reviews:145, images:[] },
-          { id:'p11', name:'Royal Amber', category:'colognes', price:129.99, description:'Rich warm fragrance with amber and sandalwood.', sizes:null, badge:'Premium', rating:4.8, reviews:98, images:[] },
-          { id:'p12', name:'Citrus Burst', category:'colognes', price:59.99, originalPrice:79.99, description:'Vibrant citrus cologne with lemon and grapefruit.', sizes:null, rating:4.5, reviews:187, images:[] },
-          { id:'p13', name:'Black Leather', category:'colognes', price:109.99, description:'Bold fragrance with leather and tobacco notes.', sizes:null, rating:4.7, reviews:76, images:[] },
-          { id:'p14', name:'Velvet Rose', category:'colognes', price:94.99, description:'Elegant floral-woody fragrance with rose and saffron.', sizes:null, badge:'New', rating:4.7, reviews:55, images:[] },
-          { id:'p23', name:'HHZ Premium Cap', category:'other', price:29.99, description:'Adjustable cap with embroidered HHZ logo.', sizes:null, rating:4.4, reviews:98, images:[] },
-          { id:'p24', name:'Luxury Scented Candle', category:'other', price:44.99, description:'Hand-poured soy wax candle with oud and amber.', sizes:null, rating:4.6, reviews:72, images:[] }
+          { id:'p1', name:'Dior B23 High Top', category:'shoes', price:125, description:'Dior Oblique high-top sneakers with iconic monogram canvas upper, round toe silhouette, and durable rubber sole. A luxury streetwear essential from Kim Jones\' exclusive collection.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.9, reviews:186, images:[] },
+          { id:'p2', name:'LV Trainer', category:'shoes', price:95, description:'Louis Vuitton Trainer sneakers designed by Virgil Abloh. Crafted from premium calf leather with signature LV Monogram, chunky silhouette, and iconic LV branding on the side.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Premium', rating:4.8, reviews:154, images:[] },
+          { id:'p3', name:'Off-White Jordan 4', category:'shoes', price:90, description:'Off-White x Air Jordan 4 collaboration with signature industrial design elements including zip tie, quotation marks, and exposed foam details. A Virgil Abloh masterpiece.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Collaboration', rating:4.9, reviews:223, images:[] },
+          { id:'p4', name:'Yeezy Slide', category:'shoes', price:60, description:'adidas Yeezy Slide with one-piece injected foam construction for lightweight comfort. Minimalist silhouette with serrated sole for traction. Perfect for casual everyday wear.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Essential', rating:4.6, reviews:312, images:[] },
+          { id:'p5', name:'Balenciaga Track', category:'shoes', price:135, description:'Balenciaga Track sneakers with complex layered mesh and panel construction. Chunky runner silhouette with multi-material upper, technical detailing, and exaggerated sole.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.7, reviews:98, images:[] },
+          { id:'p6', name:'Jordan 1 Low', category:'shoes', price:90, description:'Air Jordan 1 Low with classic silhouette and iconic Wings logo embossed on the heel. Premium leather upper with Air-Sole cushioning for all-day comfort and timeless style.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:267, images:[] },
+          { id:'p7', name:'New Balance 550', category:'shoes', price:90, description:'New Balance 550 sneakers with retro basketball-inspired design. Leather and mesh upper with ENCAP midsole technology for superior cushioning and support.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Trending', rating:4.6, reviews:145, images:[] },
+          { id:'p8', name:'Adidas Samba', category:'shoes', price:80, description:'Adidas Samba classic sneakers with clean iconic design. Leather upper with suede T-toe overlay, rubber cupsole, and signature 3-Stripes branding. A timeless trainer.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.5, reviews:198, images:[] },
+          { id:'p9', name:'Nike Air Force 1 Low', category:'shoes', price:70, description:'The iconic Nike Air Force 1 Low with full-length Air-Sole unit for responsive cushioning. Durable leather upper with classic perforation detailing and signature Swoosh.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:456, images:[] },
+          { id:'p10', name:'Air Jordan 1 High', category:'shoes', price:80, description:'The legendary Air Jordan 1 High OG. Premium leather upper with iconic Swoosh branding, Nike Air cushioning, and classic Wings logo. A true sneaker icon.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Icon', rating:4.8, reviews:389, images:[] },
+          { id:'p11', name:'Air Jordan 11', category:'shoes', price:90, description:'Air Jordan 11 with premium patent leather mudguard and mesh upper. Full-length Air-Sole unit with carbon fiber shank plate for responsive cushioning and stability.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Classic', rating:4.9, reviews:267, images:[] },
+          { id:'p12', name:'Air Jordan 4', category:'shoes', price:95, description:'Air Jordan 4 Retro with iconic wing eyelets and breathable mesh paneling. Visible Air-Sole unit in the heel for responsive cushioning and legendary comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.8, reviews:312, images:[] },
+          { id:'p13', name:'Nike Dunk Low', category:'shoes', price:85, description:'Nike Dunk Low with classic basketball-to-skateboarding silhouette. Leather upper with perforated toe box for breathability and padded low-cut collar for comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Popular', rating:4.7, reviews:334, images:[] },
+          { id:'p14', name:'Yeezy Foam Runner', category:'shoes', price:67, description:'Yeezy Foam Runner with innovative injected foam construction made from algae-based EVA. Lightweight, breathable, and sustainably crafted with unique organic silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Sustainable', rating:4.5, reviews:178, images:[] },
+          { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit woven upper for a sock-like fit. Signature side stripe with Boost midsole technology for unmatched energy return and comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] }
         ];
         state.products.forEach(function(p){ DB.collection('products').doc(p.id).set(p); });
       }
@@ -442,7 +441,7 @@ var App = {
       state.categories = [];
       snap.forEach(function(d){ state.categories.push(d.data()); });
       if(!state.categories.length){
-        state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:8 },{ id:'colognes', label:'Colognes', icon:'🧴', count:6 },{ id:'other', label:'Other', icon:'🛍️', count:2 }];
+        state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 }];
         state.categories.forEach(function(c){ DB.collection('categories').doc(c.id).set(c); });
       }
       check();
@@ -1239,12 +1238,15 @@ var App = {
 
   seedProducts: function(){
     if(confirm('Add default products if your collection is empty?')){
-      var defaults = [
-        { id:'p1', name:'Nike Air Max Horizon', category:'shoes', price:149.99, originalPrice:189.99, description:'Premium athletic sneakers with advanced cushioning.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Featured', rating:4.8, reviews:124, images:[] },
-        { id:'p2', name:'Luxury Runner Pro', category:'shoes', price:229.99, description:'High-performance running shoes.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'New', rating:4.9, reviews:86, images:[] },
-        { id:'p9', name:'Midnight Oud', category:'colognes', price:89.99, description:'Luxurious woody fragrance with oud and amber.', sizes:null, badge:'Bestseller', rating:4.9, reviews:214, images:[] }
-      ];
       var self = this;
+      var defaults = [
+        { id:'p1', name:'Dior B23 High Top', category:'shoes', price:125, description:'Dior Oblique high-top sneakers with iconic monogram canvas.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.9, reviews:186, images:[] },
+        { id:'p2', name:'LV Trainer', category:'shoes', price:95, description:'Louis Vuitton Trainer sneakers by Virgil Abloh.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Premium', rating:4.8, reviews:154, images:[] },
+        { id:'p3', name:'Off-White Jordan 4', category:'shoes', price:90, description:'Off-White x Air Jordan 4 collaboration.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Collaboration', rating:4.9, reviews:223, images:[] },
+        { id:'p4', name:'Yeezy Slide', category:'shoes', price:60, description:'adidas Yeezy Slide with injected foam construction.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Essential', rating:4.6, reviews:312, images:[] },
+        { id:'p5', name:'Balenciaga Track', category:'shoes', price:135, description:'Balenciaga Track with layered mesh and chunky silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.7, reviews:98, images:[] },
+        { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit upper.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] }
+      ];
       defaults.forEach(function(p){
         if(!state.products.find(function(x){ return x.id === p.id; })){
           state.products.push(p);
