@@ -347,6 +347,49 @@ html{scroll-behavior:smooth}
 .guide-card-detail .g-detail-row .val{color:var(--gold);font-weight:600}
 .guide-card .g-tip{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;margin:0 12px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:12px;color:#888}
 .guide-card .g-tip strong{color:var(--gold)}
+/* Settings */
+.settings-page{padding:16px}
+.settings-card{background:#111;border-radius:12px;border:1px solid #1a1a1a;padding:16px;margin-bottom:16px}
+.settings-card h3{font-size:16px;color:#fff;margin-bottom:4px;font-weight:600}
+.settings-card p{font-size:13px;color:#888;margin-bottom:14px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #1a1a1a}
+.settings-row:last-child{border-bottom:none}
+.settings-row .s-label{font-size:14px;color:#fff;font-weight:500}
+.settings-row .s-desc{font-size:12px;color:#666}
+.toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#333;border-radius:13px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.3s}
+.toggle-switch input:checked+.toggle-slider{background:var(--gold)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(22px)}
+.lang-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;background:#1a1a1a;border:1px solid #222;color:#aaa;font-size:14px;cursor:pointer;transition:all .2s;flex:1}
+.lang-btn:focus-visible{outline:2px solid var(--gold)}
+.lang-btn.active{background:rgba(255,255,255,.1);border-color:var(--gold);color:var(--gold);font-weight:600}
+.lang-btn .flag{font-size:18px}
+.lang-grid{display:flex;gap:8px;flex-wrap:wrap}
+/* Light theme */
+body.light-theme{--bg:#ffffff;--bg2:#f5f5f5;--bg3:#eeeeee;--text:#111111;--text-muted:#888;--border:#ddd;--gold:#000000;--gold-light:#333;--gold-dark:#666}
+body.light-theme .app-header{background:rgba(255,255,255,.95);border-bottom:1px solid #eee}
+body.light-theme .product-card,.light-theme .order-card,.light-theme .admin-product,.light-theme .cart-summary,.light-theme .settings-card{background:#fafafa;border-color:#eee}
+body.light-theme .product-card-name{color:#111}
+body.light-theme .search-bar input,.light-theme .form-group input,.light-theme .form-group select,.light-theme .form-group textarea{background:#fff;border-color:#ddd;color:#111}
+body.light-theme .pill{background:#eee;color:#555}
+body.light-theme .pill.active{background:#000;color:#fff}
+body.light-theme .size-btn{background:#eee;border-color:#ddd;color:#555}
+body.light-theme .size-btn.selected{border-color:#000;color:#000;background:rgba(0,0,0,.1)}
+body.light-theme .btn-add-cart{background:#000;color:#fff}
+body.light-theme .btn-checkout{background:#000;color:#fff}
+body.light-theme .contact-card,.light-theme .stat-card,.light-theme .admin-dash-card{background:#fafafa;border-color:#eee}
+body.light-theme .cart-item{border-color:#eee}
+body.light-theme .guide-mockup{background:#fff}
+body.light-theme .guide-mockup-header{background:#f5f5f5}
+body.light-theme .guide-mockup-product{background:#fafafa;border-color:#eee}
+body.light-theme .guide-mockup-product .g-img,.light-theme .guide-mockup-product .g-line{background:#eee}
+body.light-theme .guide-mockup-hero{background:linear-gradient(135deg,#f0f0f0,#e0e0e0);color:#aaa}
+body.light-theme .guide-card{background:#fafafa;border-color:#eee}
+body.light-theme .guide-card p{color:#666}
+body.light-theme .guide-card-detail{background:#f5f5f5;border-color:#eee}
+body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
 </style>
 </head>
 <body>
@@ -380,6 +423,7 @@ html{scroll-behavior:smooth}
       <a class="sidebar-link" data-page="webguide">Web Guide</a>
       <a class="sidebar-link" data-page="policies">Policies</a>
       <a class="sidebar-link" data-page="about">About HHZ</a>
+      <a class="sidebar-link" data-page="settings">Settings</a>
     </div>
     <div class="sidebar-section"><div class="sidebar-label">Management</div>
       <a class="sidebar-link" data-page="admin">Admin Panel</a>
@@ -525,6 +569,11 @@ html{scroll-behavior:smooth}
       </div>
     </div>
 
+    <section class="page" id="page-settings" aria-label="Settings">
+      <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1>Settings</h1></div>
+      <div id="settingsContent" class="settings-page"></div>
+    </section>
+
     <section class="page" id="page-admin" aria-label="Admin panel">
       <div class="page-header"><button class="btn-back" data-page="home">← Back</button><h1 id="adminTitle">Admin Panel</h1><button class="admin-logout" id="adminLogout">Logout</button></div>
       <div class="admin-dashboard" id="adminDashboard"></div>
@@ -577,7 +626,7 @@ var AUTH = firebase.auth();
 
 var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@hhz.ca', tiktok:'@.hhz.shop', whatsapp:'+32488225144', whatsappLink:'https://wa.me/32488225144' };
 
-var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], detailImgs:[], detailImgIdx:0 };
+var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], detailImgs:[], detailImgIdx:0, settings:loadSettings() };
 
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function stars(r){var s='';for(var i=0;i<5;i++)s+=i<Math.round(r)?'★':'☆';return s}
@@ -585,6 +634,8 @@ function loadCart(){try{return JSON.parse(localStorage.getItem('hhz_cart'))||[]}
 function saveCart(c){localStorage.setItem('hhz_cart',JSON.stringify(c))}
 function loadOrders(){try{return JSON.parse(localStorage.getItem('hhz_orders'))||[]}catch(e){return[]}}
 function saveOrders(o){localStorage.setItem('hhz_orders',JSON.stringify(o))}
+function loadSettings(){try{return JSON.parse(localStorage.getItem('hhz_settings'))||{theme:'dark',lang:'en'}}catch(e){return{theme:'dark',lang:'en'}}}
+function saveSettings(s){localStorage.setItem('hhz_settings',JSON.stringify(s));state.settings=s}
 
 var App = {
   init: function(){
@@ -594,6 +645,7 @@ var App = {
     var self = this;
     state.cart = loadCart();
     state.orders = loadOrders();
+    this.applyTheme();
     this.loadData(function(){
       setTimeout(function(){
         var ls = document.getElementById('loading-screen');
@@ -605,6 +657,31 @@ var App = {
         self.startCount();
       }, 400);
     });
+  },
+
+  applyTheme: function(){
+    if(state.settings.theme === 'light') document.body.classList.add('light-theme');
+    else document.body.classList.remove('light-theme');
+  },
+
+  setTheme: function(t){
+    state.settings.theme = t;
+    saveSettings(state.settings);
+    this.applyTheme();
+    this.toast(t === 'light' ? 'Light theme enabled' : 'Dark theme enabled');
+  },
+
+  setLang: function(l){
+    state.settings.lang = l;
+    saveSettings(state.settings);
+    this.toast('Language set to ' + l.toUpperCase());
+  },
+
+  renderSettings: function(){
+    var html = '<div class="settings-card"><h3>Appearance</h3><p>Choose between dark and light theme</p><div class="settings-row"><div><div class="s-label">Dark Mode</div><div class="s-desc">Use dark color scheme</div></div><label class="toggle-switch"><input type="checkbox" id="themeToggle"'+(state.settings.theme==='dark'?' checked':'')+' onchange="App.setTheme(this.checked?\'dark\':\'light\')"><span class="toggle-slider"></span></label></div></div>';
+    html += '<div class="settings-card"><h3>Language</h3><p>Select your preferred language</p><div class="lang-grid"><button class="lang-btn'+(state.settings.lang==='en'?' active':'')+'" onclick="App.setLang(\'en\')"><span class="flag">🇬🇧</span> English</button><button class="lang-btn'+(state.settings.lang==='fr'?' active':'')+'" onclick="App.setLang(\'fr\')"><span class="flag">🇫🇷</span> Français</button><button class="lang-btn'+(state.settings.lang==='nl'?' active':'')+'" onclick="App.setLang(\'nl\')"><span class="flag">🇳🇱</span> Nederlands</button><button class="lang-btn'+(state.settings.lang==='ar'?' active':'')+'" onclick="App.setLang(\'ar\')"><span class="flag">🇸🇦</span> العربية</button></div></div>';
+    html += '<div class="settings-card"><h3>About</h3><p>HHZ Premium Store v2.0 — Free worldwide shipping · All prices negotiable</p></div>';
+    document.getElementById('settingsContent').innerHTML = html;
   },
 
   loadData: function(cb){
@@ -802,6 +879,7 @@ var App = {
       case 'webguide': this.renderWebGuide(); break;
       case 'policies': this.renderPolicies(); break;
       case 'about': this.renderAbout(); break;
+      case 'settings': this.renderSettings(); break;
       case 'admin': this.renderAdmin(); break;
     }
     this.updateBadge();
