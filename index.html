@@ -344,7 +344,7 @@ html{scroll-behavior:smooth}
       <a class="sidebar-link" data-page="cart">Cart</a>
       <a class="sidebar-link" data-page="orders">Orders</a>
       <a class="sidebar-link" data-page="contact">Contact</a>
-      <a class="sidebar-link" data-page="guide">Guide</a>
+      <a class="sidebar-link" data-page="guide">App Guide</a>
       <a class="sidebar-link" data-page="policies">Policies</a>
       <a class="sidebar-link" data-page="about">About HHZ</a>
     </div>
@@ -901,6 +901,20 @@ var App = {
         App.updateGallery();
       });
     });
+
+    var wrap = document.querySelector('.detail-img-wrap');
+    if(wrap){
+      var sx = 0;
+      wrap.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+      wrap.addEventListener('touchend', function(e){
+        var dx = sx - e.changedTouches[0].clientX;
+        if(Math.abs(dx) < 50) return;
+        var imgs = document.querySelectorAll('.detail-gallery-img');
+        if(dx > 0) state.detailImgIdx = Math.min(state.detailImgIdx + 1, imgs.length - 1);
+        else state.detailImgIdx = Math.max(state.detailImgIdx - 1, 0);
+        App.updateGallery();
+      }, {passive:true});
+    }
   },
 
   updateGallery: function(){
