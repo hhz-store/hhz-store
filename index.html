@@ -378,7 +378,7 @@ var STORAGE = firebase.storage();
 
 var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@hhz.ca', tiktok:'@.hhz.shop', whatsapp:'+32488225144', whatsappLink:'https://wa.me/32488225144' };
 
-App.pendingImgs = []; App.pendingImgCount = 0; var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], detailImgs:[], detailImgIdx:0 };
+var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], detailImgs:[], detailImgIdx:0 };
 
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function stars(r){var s='';for(var i=0;i<5;i++)s+=i<Math.round(r)?'★':'☆';return s}
@@ -389,6 +389,8 @@ function saveOrders(o){localStorage.setItem('hhz_orders',JSON.stringify(o))}
 
 var App = {
   init: function(){
+    App.pendingImgs = [];
+    App.pendingImgCount = 0;
     this.bindEvents();
     var self = this;
     state.cart = loadCart();
