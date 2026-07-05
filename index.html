@@ -431,7 +431,8 @@ var App = {
           { id:'p12', name:'Air Jordan 4', category:'shoes', price:95, description:'Air Jordan 4 Retro with iconic wing eyelets and breathable mesh paneling. Visible Air-Sole unit in the heel for responsive cushioning and legendary comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.8, reviews:312, images:[] },
           { id:'p13', name:'Nike Dunk Low', category:'shoes', price:85, description:'Nike Dunk Low with classic basketball-to-skateboarding silhouette. Leather upper with perforated toe box for breathability and padded low-cut collar for comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Popular', rating:4.7, reviews:334, images:[] },
           { id:'p14', name:'Yeezy Foam Runner', category:'shoes', price:67, description:'Yeezy Foam Runner with innovative injected foam construction made from algae-based EVA. Lightweight, breathable, and sustainably crafted with unique organic silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Sustainable', rating:4.5, reviews:178, images:[] },
-          { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit woven upper for a sock-like fit. Signature side stripe with Boost midsole technology for unmatched energy return and comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] }
+          { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit woven upper for a sock-like fit. Signature side stripe with Boost midsole technology for unmatched energy return and comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] },
+          { id:'p16', name:'Colognes', category:'colognes', price:65, description:'Premium designer colognes 100ml-125ml. Top brands and exclusive fragrances. 💰 Bulk discount: buy more = pay less! Message us on WhatsApp for best pricing on multiple bottles.', sizes:null, badge:'Bestseller', rating:4.8, reviews:534, images:[] }
         ];
         state.products.forEach(function(p){ DB.collection('products').doc(p.id).set(p); });
       }
@@ -441,7 +442,7 @@ var App = {
       state.categories = [];
       snap.forEach(function(d){ state.categories.push(d.data()); });
       if(!state.categories.length){
-        state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 }];
+        state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 },{ id:'colognes', label:'Colognes', icon:'🧴', count:1 }];
         state.categories.forEach(function(c){ DB.collection('categories').doc(c.id).set(c); });
       }
       check();
@@ -697,6 +698,9 @@ var App = {
       html += '</div><p id="sizeError" style="color:#e74c3c;font-size:12px;margin-top:6px;display:none">Please select a size</p></div>';
     }
     html += '<div class="qty-selector"><span style="font-size:13px;color:#888">Quantity:</span><button id="detailQtyDown" aria-label="Decrease">−</button><span id="detailQtyVal">1</span><button id="detailQtyUp" aria-label="Increase">+</button></div>';
+    html += '<div class="form-group" style="margin-bottom:16px"><label for="detailSpec">Product Specification (required) — tell us exactly which model, color, version you want</label>';
+    html += '<textarea id="detailSpec" placeholder="e.g. B30 black, Jordan 4 blue navy, Black opium, Yeezy 350 V2 carbon beluga ..." style="width:100%;padding:12px;border-radius:8px;background:#1a1a1a;border:1px solid #222;color:#fff;font-size:15px;min-height:60px;resize:vertical"></textarea>';
+    html += '<p id="specError" style="color:#e74c3c;font-size:12px;margin-top:4px;display:none">Please specify which product you want</p></div>';
     html += '<input type="hidden" id="detailProductId" value="'+p.id+'">';
     html += '<button class="btn-add-cart" id="addToCartBtn">Add to Cart</button></div>';
     document.getElementById('page-detail').innerHTML = html;
@@ -728,12 +732,24 @@ var App = {
       if(!state.selectedSize){ var err = document.getElementById('sizeError'); if(err) err.style.display = 'block'; return; }
       var err = document.getElementById('sizeError'); if(err) err.style.display = 'none';
     }
-    var existing = state.cart.find(function(i){ return i.id === product.id && i.size === (state.selectedSize || null); });
-    if(existing){ existing.qty += state.detailQty; } else { state.cart.push({ id:product.id, name:product.name, price:product.price, size:state.selectedSize, qty:state.detailQty }); }
+    var spec = document.getElementById('detailSpec');
+    var specVal = spec ? spec.value.trim() : '';
+    if(!specVal){
+      var specErr = document.getElementById('specError');
+      if(specErr) specErr.style.display = 'block';
+      if(spec) spec.focus();
+      return;
+    }
+    var specErr = document.getElementById('specError');
+    if(specErr) specErr.style.display = 'none';
+    var key = product.id + '_' + (state.selectedSize || '') + '_' + specVal;
+    var existing = state.cart.find(function(i){ return i._key === key; });
+    if(existing){ existing.qty += state.detailQty; } else { state.cart.push({ _key:key, id:product.id, name:product.name, price:product.price, size:state.selectedSize, spec:specVal, qty:state.detailQty }); }
     saveCart(state.cart);
     this.updateBadge();
     this.toast('Added to cart!');
     state.selectedSize = null;
+    if(spec) spec.value = '';
   },
 
   cartQty: function(id, delta){
@@ -756,10 +772,11 @@ var App = {
     var html = '<div class="page-header"><h1>Cart</h1></div><div class="cart-items">';
     state.cart.forEach(function(item){
       var sz = item.size ? ' (EU '+item.size+')' : '';
+      var sp = item.spec ? '<div style="font-size:11px;color:#aaa;margin-top:2px">📋 '+esc(item.spec)+'</div>' : '';
       var p = App.getProduct(item.id);
       var img = (p && p.images && p.images.length) ? p.images[0] : 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=64&h=64&fit=crop';
       html += '<div class="cart-item"><img class="cart-item-img" src="'+img+'" alt="'+esc(item.name)+'" loading="lazy">';
-      html += '<div class="cart-item-info"><div class="cart-item-name">'+esc(item.name)+sz+'</div><div class="cart-item-meta">€'+item.price.toFixed(2)+' each</div>';
+      html += '<div class="cart-item-info"><div class="cart-item-name">'+esc(item.name)+sz+'</div>'+sp+'<div class="cart-item-meta">€'+item.price.toFixed(2)+' each</div>';
       html += '<div class="cart-item-actions"><button class="cart-dec" data-id="'+item.id+'" aria-label="Decrease">−</button><span class="qty">'+item.qty+'</span><button class="cart-inc" data-id="'+item.id+'" aria-label="Increase">+</button><button class="cart-item-remove cart-rm" data-id="'+item.id+'">Remove</button></div></div>';
       html += '<div class="cart-item-price">€'+(item.price*item.qty).toFixed(2)+'</div></div>';
     });
@@ -800,7 +817,7 @@ var App = {
     html += '<textarea id="coNotes" placeholder="e.g. B30 black, Jordan 4 blue navy, Air Force 1 white"></textarea></div>';
     html += '<div class="shipping-notice">📋 <strong>Tip:</strong> Be as specific as possible so we can prepare your order correctly.</div>';
     html += '<div style="background:#111;border-radius:10px;padding:14px;border:1px solid #1a1a1a;margin-bottom:16px"><h3 style="font-size:14px;color:#fff;margin-bottom:8px">Order Summary</h3>';
-    state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#aaa"><span>'+esc(item.name)+sz+' × '+item.qty+'</span><span>€'+(item.price*item.qty).toFixed(2)+'</span></div>'; });
+    state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? '<br><span style="font-size:11px;color:#888">📋 '+esc(item.spec)+'</span>' : ''; html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#aaa"><span>'+esc(item.name)+sz+sp+' × '+item.qty+'</span><span>€'+(item.price*item.qty).toFixed(2)+'</span></div>'; });
     html += '<div style="border-top:1px solid #222;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:13px;color:#888"><span>Shipping</span><span>'+(shipping===0?'FREE':'€'+shipping.toFixed(2))+'</span></div>';
     html += '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold);margin-top:4px"><span>Total</span><span>€'+total.toFixed(2)+'</span></div><div style="font-size:12px;color:#888;margin-top:6px">💬 Final price negotiable via WhatsApp</div></div>';
     html += '<button class="btn-checkout" id="placeOrder">Place Order via WhatsApp</button></div>';
@@ -817,8 +834,8 @@ var App = {
     var shipping = subtotal >= 200 ? 0 : 15; var total = subtotal + shipping;
     var orderId = 'HHZ-'+Date.now().toString(36).toUpperCase();
     var msg = '🛒 *NEW ORDER*\nOrder: '+orderId+'\n\n*ITEMS:*\n';
-    state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; msg += '• '+item.name+sz+' × '+item.qty+' = €'+(item.price*item.qty).toFixed(2)+'\n'; });
-    msg += '\n📋 *PRODUCT DETAILS:*\n'+notes+'\n\n';
+    state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? ' — '+item.spec : ''; msg += '• '+item.name+sz+sp+' × '+item.qty+' = €'+(item.price*item.qty).toFixed(2)+'\n'; });
+    msg += '\n📋 *EXTRA NOTES:*\n'+notes+'\n\n';
     msg += '📦 *Subtotal:* €'+subtotal.toFixed(2)+'\n🚚 *Shipping:* '+(shipping===0?'FREE':'€'+shipping.toFixed(2))+'\n💰 *Total:* €'+total.toFixed(2)+'\n\n*SHIPPING:*\n👤 '+name+'\n📞 '+phone+'\n📍 '+address+', '+district+', '+city+', '+stateF+', '+country+' '+postcode+'\n\n⏱ *Est. delivery:* 8-15 business days\n\n💬 *Note:* Prices are negotiable. Please confirm total.';
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
@@ -855,7 +872,7 @@ var App = {
     var html = '<div class="page-header"><h1>Orders</h1></div>';
     allOrders.forEach(function(o){
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-      var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; return i.name+sz+' × '+i.qty; }).join(', ');
+      var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
       html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+o.total.toFixed(2)+'</div></div>';
     });
     container.innerHTML = html;
@@ -1194,7 +1211,7 @@ var App = {
           var o = d.data();
           var date = new Date(o.date);
           var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-          var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; return i.name+sz+' × '+i.qty; }).join(', ');
+          var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
           html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
           html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div></div>';
         });
@@ -1207,7 +1224,7 @@ var App = {
     }
     showOrders.forEach(function(o){
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-      var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; return i.name+sz+' × '+i.qty; }).join(', ');
+      var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
       html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
       html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div></div>';
     });
@@ -1245,7 +1262,8 @@ var App = {
         { id:'p3', name:'Off-White Jordan 4', category:'shoes', price:90, description:'Off-White x Air Jordan 4 collaboration.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Collaboration', rating:4.9, reviews:223, images:[] },
         { id:'p4', name:'Yeezy Slide', category:'shoes', price:60, description:'adidas Yeezy Slide with injected foam construction.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Essential', rating:4.6, reviews:312, images:[] },
         { id:'p5', name:'Balenciaga Track', category:'shoes', price:135, description:'Balenciaga Track with layered mesh and chunky silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.7, reviews:98, images:[] },
-        { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit upper.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] }
+        { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit upper.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] },
+        { id:'p16', name:'Colognes', category:'colognes', price:65, description:'Premium designer colognes 100ml-125ml. Bulk discount available.', sizes:null, badge:'Bestseller', rating:4.8, reviews:534, images:[] }
       ];
       defaults.forEach(function(p){
         if(!state.products.find(function(x){ return x.id === p.id; })){
