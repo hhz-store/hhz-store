@@ -27,6 +27,9 @@ input,select,textarea{font:inherit;color:inherit}
 .loading-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;animation:loadFill 2s ease-in-out forwards}
 @keyframes loadFill{0%{width:0%}100%{width:100%}}
 .loading-text{color:var(--gold);font-size:11px;letter-spacing:4px;margin-top:12px;font-weight:500}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 #app{display:none}
 #app.ready{display:block}
 .page{display:none;padding-bottom:80px}
@@ -55,7 +58,7 @@ input,select,textarea{font:inherit;color:inherit}
 .sidebar-link.active{color:var(--gold)}
 .sidebar-section{border-bottom:1px solid #1a1a1a;padding:8px 0}
 .sidebar-label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:2px;padding:12px 20px 4px}
-.hero{position:relative;height:200px;border-radius:12px;margin:12px 16px;overflow:hidden;background-size:cover;background-position:center;transition:background-image .4s}
+.hero{position:relative;height:200px;border-radius:12px;margin:12px 16px;overflow:hidden;background-size:cover;background-position:center;transition:background-image .8s ease;animation:fadeUp .6s ease}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,10,10,.85) 30%,rgba(10,10,10,.3));display:flex;flex-direction:column;justify-content:center;padding:24px}
 .hero h2{font-family:'Playfair Display',Georgia,serif;font-size:28px;color:#fff;margin-bottom:4px}
 .hero p{color:var(--gold);font-size:14px;max-width:200px}
@@ -64,7 +67,10 @@ input,select,textarea{font:inherit;color:inherit}
 .trust-item{text-align:center}
 .trust-item .num{font-size:18px;font-weight:700;color:var(--gold)}
 .trust-item .label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px}
-.section{padding:20px 16px}
+.section{padding:20px 16px;animation:fadeUp .5s ease both}
+.section:nth-child(2){animation-delay:.1s}
+.section:nth-child(3){animation-delay:.2s}
+.section:nth-child(4){animation-delay:.3s}
 .section-title{font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;margin-bottom:4px;color:#fff}
 .section-sub{font-size:12px;color:#666;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
 .section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
@@ -77,7 +83,8 @@ input,select,textarea{font:inherit;color:inherit}
 .pill .count{font-size:11px;opacity:.6}
 .product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 16px}
 @media(min-width:500px){.product-grid{grid-template-columns:repeat(3,1fr)}}
-.product-card{background:#111;border-radius:12px;overflow:hidden;border:1px solid #1a1a1a;cursor:pointer}
+.product-card{background:#111;border-radius:12px;overflow:hidden;border:1px solid #1a1a1a;cursor:pointer;transition:transform .3s ease,box-shadow .3s ease}
+.product-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .product-card:focus-within{border-color:var(--gold)}
 .product-card-img{position:relative;aspect-ratio:1;background:#1a1a1a;overflow:hidden}
 .product-card-img img{width:100%;height:100%;object-fit:cover}
@@ -162,6 +169,9 @@ input,select,textarea{font:inherit;color:inherit}
 .order-card .o-date{font-size:12px;color:#666;margin-bottom:6px}
 .order-card .o-items{font-size:13px;color:#aaa;margin-bottom:4px}
 .order-card .o-total{font-weight:700;color:var(--gold)}
+.order-card .o-cancel{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 14px;border-radius:6px;background:rgba(231,76,60,.15);color:var(--danger);font-size:12px;font-weight:500;cursor:pointer;border:none}
+.order-card .o-cancel:hover{background:rgba(231,76,60,.3)}
+.order-card .o-cancelled{font-size:11px;color:#666;margin-top:6px}
 .orders-empty{padding:60px 16px;text-align:center;color:#666}
 .contact-card{background:#111;border-radius:12px;padding:16px;margin:12px 16px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:14px;cursor:pointer}
 .contact-card .c-label{font-size:12px;color:#666}
@@ -287,6 +297,7 @@ input,select,textarea{font:inherit;color:inherit}
         <div class="trust-item"><div class="num">★ 4.8</div><div class="label">Rating</div></div>
         <div class="trust-item"><div class="num" id="trustCount">0</div><div class="label">Customers</div></div>
         <div class="trust-item"><div class="num">80+</div><div class="label">Countries</div></div>
+        <div class="trust-item"><div class="num">✓</div><div class="label">Authentic</div></div>
       </div>
       <div class="section" id="homeContent"></div>
     </section>
@@ -609,11 +620,18 @@ var App = {
   updateBadge: function(){ var c = state.cart.reduce(function(s,i){ return s+i.qty; }, 0); document.getElementById('cartBadge').textContent = c; },
 
   startHero: function(){
-    var imgs = ['https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&h=400&fit=crop','https://images.unsplash.com/photo-1589182373726-e4f658ab50ab?w=800&h=400&fit=crop','https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&h=400&fit=crop'];
+    var imgs = [
+      'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1589182373726-e4f658ab50ab?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=400&fit=crop'
+    ];
     function setHero(i){ var h = document.getElementById('heroBanner'); if(h) h.style.backgroundImage = 'url('+imgs[i%imgs.length]+')'; }
     setHero(0);
     var self = this;
-    setInterval(function(){ if(state.page !== 'home') return; state.heroIdx = (state.heroIdx+1)%imgs.length; setHero(state.heroIdx); }, 5000);
+    setInterval(function(){ if(state.page !== 'home') return; state.heroIdx = (state.heroIdx+1)%imgs.length; setHero(state.heroIdx); }, 4500);
   },
 
   startCount: function(){
@@ -626,17 +644,25 @@ var App = {
     var self = this;
     var shoes = state.products.filter(function(p){ return p.category === 'shoes'; });
     var colognes = state.products.filter(function(p){ return p.category === 'colognes'; });
-    var featured = state.products.filter(function(p){ return p.badge; }).slice(0,4);
+    var featured = state.products.filter(function(p){ return p.badge; }).slice(0,5);
     var html = '<div class="category-pills" style="padding-left:0;padding-right:0;margin-bottom:4px">';
     state.categories.forEach(function(c){ html += '<button class="pill" onclick="App.go(\'categories\');setTimeout(function(){App.filter=\''+c.id+'\';App.renderCategories()},50)" style="flex-shrink:0">'+esc(c.icon)+' '+esc(c.label)+' <span class="count">('+c.count+')</span></button>'; });
     html += '</div>';
-    if(featured.length){ html += '<div class="section"><div class="section-header"><div><div class="section-sub">Featured</div><h2 class="section-title">Trending Now</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; featured.forEach(function(p){ html += self.productCard(p); }); html += '</div></div>'; }
-    html += '<div class="section"><div class="section-header"><div><div class="section-sub">Footwear</div><h2 class="section-title">Popular Shoes</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; shoes.slice(0,5).forEach(function(p){ html += self.productCard(p); }); html += '</div></div>';
+    if(featured.length){ html += '<div class="section"><div class="section-header"><div><div class="section-sub">🔥 Hottest Picks</div><h2 class="section-title">Trending Now</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; featured.forEach(function(p){ html += self.productCard(p); }); html += '</div></div>'; }
+    html += '<div class="section" style="background:linear-gradient(135deg,rgba(212,168,83,.08),rgba(10,10,10,0));border-top:1px solid rgba(212,168,83,.15);border-bottom:1px solid rgba(212,168,83,.15);margin:4px 0;padding:18px 16px;display:flex;align-items:center;gap:14px">';
+    html += '<span style="font-size:32px">🚚</span><div><p style="color:#fff;font-weight:600;font-size:15px">🌍 FREE Shipping Worldwide</p><p style="color:#888;font-size:12px">On all orders — no minimum</p></div>';
+    html += '<span style="font-size:32px">💬</span><div><p style="color:#fff;font-weight:600;font-size:15px">100% Price Negotiable</p><p style="color:#888;font-size:12px">Message us on WhatsApp</p></div></div>';
+    html += '<div class="section"><div class="section-header"><div><div class="section-sub">👟 Footwear</div><h2 class="section-title">Popular Shoes</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; shoes.slice(0,5).forEach(function(p){ html += self.productCard(p); }); html += '</div></div>';
     html += '<div class="gold-divider"></div>';
-    html += '<div class="section"><div class="section-header"><div><div class="section-sub">Fragrance</div><h2 class="section-title">Premium Colognes</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; colognes.slice(0,5).forEach(function(p){ html += self.productCard(p); }); html += '</div></div>';
+    html += '<div class="section"><div class="section-header"><div><div class="section-sub">🧴 Fragrance</div><h2 class="section-title">Premium Colognes</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; colognes.slice(0,5).forEach(function(p){ html += self.productCard(p); }); html += '</div></div>';
+    html += '<div class="section" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px">';
+    html += '<div style="background:linear-gradient(145deg,#1a1a1a,#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid #222"><span style="font-size:28px">🛡️</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">100% Authentic</p><p style="color:#888;font-size:11px;margin-top:2px">Guaranteed genuine</p></div>';
+    html += '<div style="background:linear-gradient(145deg,#1a1a1a,#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid #222"><span style="font-size:28px">📦</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Free Shipping</p><p style="color:#888;font-size:11px;margin-top:2px">Worldwide delivery</p></div>';
+    html += '<div style="background:linear-gradient(145deg,#1a1a1a,#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid #222"><span style="font-size:28px">💬</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Price Negotiable</p><p style="color:#888;font-size:11px;margin-top:2px">Best deals on WhatsApp</p></div>';
+    html += '<div style="background:linear-gradient(145deg,#1a1a1a,#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid #222"><span style="font-size:28px">⏱️</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Cancel Within 24h</p><p style="color:#888;font-size:11px;margin-top:2px">Easy cancellation</p></div></div>';
     html += '<div class="section" style="text-align:center;background:linear-gradient(135deg,#111,#0a0a0a);border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;margin:8px 0;padding:28px 16px">';
-    html += '<p style="color:var(--gold);font-size:13px;margin-bottom:6px">💬 All prices negotiable</p><p style="color:#888;font-size:14px;margin-bottom:14px">Message us on WhatsApp for the best deals</p>';
-    html += '<a href="https://wa.me/32488225144" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:#ffffff;color:#000000;border:1px solid #333;border-radius:10px;font-weight:600;font-size:15px">Chat on WhatsApp</a></div>';
+    html += '<p style="color:var(--gold);font-size:14px;margin-bottom:6px">💬 <strong>All prices negotiable</strong></p><p style="color:#888;font-size:14px;margin-bottom:16px">Message us on WhatsApp for the best deals &amp; bulk discounts</p>';
+    html += '<a href="https://wa.me/32488225144" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:#ffffff;color:#000000;border:1px solid #333;border-radius:10px;font-weight:600;font-size:15px">💬 Chat on WhatsApp</a></div>';
     document.getElementById('homeContent').innerHTML = html;
   },
 
@@ -766,7 +792,6 @@ var App = {
       return;
     }
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
-    var shipping = subtotal >= 200 ? 0 : 15; var total = subtotal + shipping;
     var html = '<div class="page-header"><h1>Cart</h1></div><div class="cart-items">';
     state.cart.forEach(function(item){
       var sz = item.size ? ' (EU '+item.size+')' : '';
@@ -779,9 +804,8 @@ var App = {
       html += '<div class="cart-item-price">€'+(item.price*item.qty).toFixed(2)+'</div></div>';
     });
     html += '</div><div class="cart-summary"><div class="row"><span>Subtotal</span><span>€'+subtotal.toFixed(2)+'</span></div>';
-    html += '<div class="row"><span>Shipping</span><span>'+(shipping===0?'<span class="free">FREE</span>':'€'+shipping.toFixed(2))+'</span></div>';
-    if(subtotal < 200 && subtotal > 0) html += '<div class="row" style="font-size:13px;color:#666">Add €'+(200-subtotal).toFixed(2)+' more for free shipping</div>';
-    html += '<div class="row total"><span>Total</span><span>€'+total.toFixed(2)+'</span></div><div class="nego-note">💬 All prices negotiable — message us on WhatsApp</div>';
+    html += '<div class="row"><span>Shipping</span><span class="free">FREE</span></div>';
+    html += '<div class="row total"><span>Total</span><span>€'+subtotal.toFixed(2)+'</span></div><div class="nego-note">💬 All prices negotiable — message us on WhatsApp</div>';
     html += '<button class="btn-checkout" id="checkoutBtn">Proceed to Checkout</button></div>';
     document.getElementById('page-cart').innerHTML = html;
   },
@@ -790,8 +814,7 @@ var App = {
     if(!state.cart.length){ this.go('cart'); return; }
     var countries = ['Algeria','Belgium','Canada','Egypt','France','Germany','India','Italy','Japan','Morocco','Netherlands','Portugal','Qatar','Saudi Arabia','South Africa','Spain','Tunisia','Turkey','United Arab Emirates','United Kingdom','United States','Yemen'];
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
-    var shipping = subtotal >= 200 ? 0 : 15; var total = subtotal + shipping;
-    var html = '<div class="page-header"><h1>Checkout</h1></div><div class="shipping-notice"><strong>Shipping Estimate:</strong> 8-15 business days</div><div class="checkout-form">';
+    var html = '<div class="page-header"><h1>Checkout</h1></div><div class="shipping-notice"><strong>Shipping Estimate:</strong> 8-15 business days · <strong>FREE Shipping</strong> worldwide</div><div class="checkout-form">';
     var fields = [
       { id:'coCountry', label:'Country', type:'select', opts:countries },
       { id:'coState', label:'State / Province', type:'text', ph:'e.g. California' },
@@ -816,8 +839,12 @@ var App = {
     html += '<div class="shipping-notice">📋 <strong>Tip:</strong> Be as specific as possible so we can prepare your order correctly.</div>';
     html += '<div style="background:#111;border-radius:10px;padding:14px;border:1px solid #1a1a1a;margin-bottom:16px"><h3 style="font-size:14px;color:#fff;margin-bottom:8px">Order Summary</h3>';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? '<br><span style="font-size:11px;color:#888">📋 '+esc(item.spec)+'</span>' : ''; html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#aaa"><span>'+esc(item.name)+sz+sp+' × '+item.qty+'</span><span>€'+(item.price*item.qty).toFixed(2)+'</span></div>'; });
-    html += '<div style="border-top:1px solid #222;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:13px;color:#888"><span>Shipping</span><span>'+(shipping===0?'FREE':'€'+shipping.toFixed(2))+'</span></div>';
-    html += '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold);margin-top:4px"><span>Total</span><span>€'+total.toFixed(2)+'</span></div><div style="font-size:12px;color:#888;margin-top:6px">💬 Final price negotiable via WhatsApp</div></div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold);border-top:1px solid #222;padding-top:8px;margin-top:4px"><span>Total</span><span>€'+subtotal.toFixed(2)+'</span></div><div style="font-size:12px;color:#888;margin-top:6px">💬 Final price negotiable via WhatsApp</div></div>';
+    html += '<div class="form-group" style="background:rgba(255,255,255,.03);border:1px solid #222;border-radius:10px;padding:14px;margin-bottom:16px">';
+    html += '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#aaa;line-height:1.5">';
+    html += '<input type="checkbox" id="coTerms" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--gold)">';
+    html += '<span>I accept the <strong style="color:var(--gold)">Terms &amp; Conditions</strong>. I understand that: orders can be cancelled within 24 hours; after shipment, <strong style="color:#e74c3c">no refunds</strong> unless the package is lost or the product has missing parts; shipping is free worldwide.</span>';
+    html += '</label></div>';
     html += '<button class="btn-checkout" id="placeOrder">Place Order via WhatsApp</button></div>';
     document.getElementById('page-checkout').innerHTML = html;
   },
@@ -826,20 +853,21 @@ var App = {
     var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var country = g('coCountry'), stateF = g('coState'), city = g('coCity'), district = g('coDistrict');
     var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode'), notes = g('coNotes');
+    var terms = document.getElementById('coTerms');
+    if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
     if(!country || !city || !name || !phone || !address){ this.toast('Please fill in all required fields'); return; }
     if(!notes){ this.toast('Please specify the product details (model, color, etc.)'); return; }
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
-    var shipping = subtotal >= 200 ? 0 : 15; var total = subtotal + shipping;
     var orderId = 'HHZ-'+Date.now().toString(36).toUpperCase();
     var msg = '🛒 *NEW ORDER*\nOrder: '+orderId+'\n\n*ITEMS:*\n';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? ' — '+item.spec : ''; msg += '• '+item.name+sz+sp+' × '+item.qty+' = €'+(item.price*item.qty).toFixed(2)+'\n'; });
     msg += '\n📋 *EXTRA NOTES:*\n'+notes+'\n\n';
-    msg += '📦 *Subtotal:* €'+subtotal.toFixed(2)+'\n🚚 *Shipping:* '+(shipping===0?'FREE':'€'+shipping.toFixed(2))+'\n💰 *Total:* €'+total.toFixed(2)+'\n\n*SHIPPING:*\n👤 '+name+'\n📞 '+phone+'\n📍 '+address+', '+district+', '+city+', '+stateF+', '+country+' '+postcode+'\n\n⏱ *Est. delivery:* 8-15 business days\n\n💬 *Note:* Prices are negotiable. Please confirm total.';
+    msg += '📦 *Subtotal:* €'+subtotal.toFixed(2)+'\n🚚 *Shipping:* FREE\n💰 *Total:* €'+subtotal.toFixed(2)+'\n\n*SHIPPING:*\n👤 '+name+'\n📞 '+phone+'\n📍 '+address+', '+district+', '+city+', '+stateF+', '+country+' '+postcode+'\n\n⏱ *Est. delivery:* 8-15 business days\n\n📋 *Policy:* Cancel within 24h · No refunds after shipment unless lost or missing parts\n\n💬 *Note:* Prices are negotiable. Please confirm total.';
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
-      notes:notes, total:total, subtotal:subtotal, shipping:shipping,
+      notes:notes, total:subtotal, subtotal:subtotal, shipping:0,
       shippingInfo:{name:name, phone:phone, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
-      status:'Pending'
+      status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString()
     };
     DB.collection('orders').add(order).then(function(){
       state.orders.unshift(order);
@@ -860,6 +888,22 @@ var App = {
     });
   },
 
+  cancelOrder: function(orderId){
+    if(!confirm('Are you sure you want to cancel order '+orderId+'?')) return;
+    var self = this;
+    var order = state.orders.find(function(o){ return o.id === orderId; });
+    if(!order){ self.toast('Order not found'); return; }
+    var cancelDeadline = order.cancellableUntil ? new Date(order.cancellableUntil) : new Date(new Date(order.date).getTime()+24*60*60*1000);
+    if(Date.now() > cancelDeadline.getTime()){ self.toast('Cancellation period (24h) has expired'); return; }
+    order.status = 'Cancelled';
+    saveOrders(state.orders);
+    DB.collection('orders').where('id','==',orderId).get().then(function(snap){
+      snap.forEach(function(doc){ doc.ref.update({status:'Cancelled', cancelledAt:new Date().toISOString()}); });
+    }).catch(function(){});
+    self.toast('Order cancelled');
+    self.renderOrders();
+  },
+
   renderOrders: function(){
     var container = document.getElementById('page-orders');
     var allOrders = state.orders.slice();
@@ -871,7 +915,18 @@ var App = {
     allOrders.forEach(function(o){
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
       var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
-      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+o.total.toFixed(2)+'</div></div>';
+      var cancelBtn = '';
+      var cancelMsg = '';
+      if(o.status === 'Pending' || o.status === 'Cancelled'){
+        if(o.status === 'Pending'){
+          var cancelDeadline = o.cancellableUntil ? new Date(o.cancellableUntil) : new Date(d.getTime()+24*60*60*1000);
+          if(Date.now() < cancelDeadline.getTime()){
+            cancelBtn = '<button class="o-cancel" onclick="App.cancelOrder(\''+esc(o.id)+'\')">✕ Cancel Order</button>';
+          }
+        }
+        if(o.status === 'Cancelled') cancelMsg = '<div class="o-cancelled">✕ Order cancelled</div>';
+      }
+      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+o.total.toFixed(2)+'</div>'+cancelBtn+cancelMsg+'</div>';
     });
     container.innerHTML = html;
   },
@@ -1243,8 +1298,9 @@ var App = {
           var date = new Date(o.date);
           var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
           var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
+          var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
           html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
-          html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div></div>';
+          html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
         });
         if(!count) html += '<p style="color:#666;padding:16px 0">No orders yet</p>';
         document.getElementById('adminOrders').innerHTML = html;
@@ -1256,8 +1312,9 @@ var App = {
     showOrders.forEach(function(o){
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
       var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
+      var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
       html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
-      html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div></div>';
+      html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
     });
     document.getElementById('adminOrders').innerHTML = html;
   },
