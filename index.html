@@ -581,6 +581,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
         <button class="tab active" data-tab="products">Products</button>
         <button class="tab" data-tab="add">Add Product</button>
         <button class="tab" data-tab="workers">Workers</button>
+        <button class="tab" data-tab="codes">Codes</button>
         <button class="tab" data-tab="categories">Categories</button>
         <button class="tab" data-tab="orders">Orders</button>
         <button class="tab" data-tab="settings">Settings</button>
@@ -588,6 +589,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
       <div class="admin-section active" id="adminProducts"></div>
       <div class="admin-section" id="adminAdd"></div>
       <div class="admin-section" id="adminWorkers"></div>
+      <div class="admin-section" id="adminCodes"></div>
       <div class="admin-section" id="adminCategories"></div>
       <div class="admin-section" id="adminOrders"></div>
       <div class="admin-section" id="adminSettings"></div>
@@ -626,7 +628,7 @@ var AUTH = firebase.auth();
 
 var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@hhz.ca', tiktok:'@.hhz.shop', whatsapp:'+32488225144', whatsappLink:'https://wa.me/32488225144' };
 
-var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], detailImgs:[], detailImgIdx:0, settings:loadSettings() };
+var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], codes:[], detailImgs:[], detailImgIdx:0, settings:loadSettings() };
 
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function stars(r){var s='';for(var i=0;i<5;i++)s+=i<Math.round(r)?'★':'☆';return s}
@@ -687,7 +689,7 @@ var App = {
   loadData: function(cb){
     var self = this;
     var loaded = 0;
-    function check(){ loaded++; if(loaded >= 2) cb(); }
+    function check(){ loaded++; if(loaded >= 3) cb(); }
     DB.collection('products').get().then(function(snap){
       state.products = [];
       snap.forEach(function(d){ state.products.push(d.data()); });
@@ -721,6 +723,11 @@ var App = {
         state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 },{ id:'colognes', label:'Colognes', icon:'🧴', count:1 }];
         state.categories.forEach(function(c){ DB.collection('categories').doc(c.id).set(c); });
       }
+      check();
+    }).catch(function(){ check(); });
+    DB.collection('codes').get().then(function(snap){
+      state.codes = [];
+      snap.forEach(function(d){ var c=d.data(); c._ref=d.ref; state.codes.push(c); });
       check();
     }).catch(function(){ check(); });
   },
@@ -1136,6 +1143,7 @@ var App = {
     html += '<div style="background:#111;border-radius:10px;padding:14px;border:1px solid #1a1a1a;margin-bottom:16px"><h3 style="font-size:14px;color:#fff;margin-bottom:8px">Order Summary</h3>';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? '<br><span style="font-size:11px;color:#888">📋 '+esc(item.spec)+'</span>' : ''; html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#aaa"><span>'+esc(item.name)+sz+sp+' × '+item.qty+'</span><span>€'+(item.price*item.qty).toFixed(2)+'</span></div>'; });
     html += '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--gold);border-top:1px solid #222;padding-top:8px;margin-top:4px"><span>Total</span><span>€'+subtotal.toFixed(2)+'</span></div><div style="font-size:12px;color:#888;margin-top:6px">💬 Final price negotiable via WhatsApp</div></div>';
+    html += '<div class="form-group"><label for="coCode">CODE (optional) — Enter a worker code for a chance to win free socks</label><input type="text" id="coCode" placeholder="e.g. CODE123" style="text-transform:uppercase"></div>';
     html += '<div class="form-group" style="background:rgba(255,255,255,.03);border:1px solid #222;border-radius:10px;padding:14px;margin-bottom:16px">';
     html += '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#aaa;line-height:1.5">';
     html += '<input type="checkbox" id="coTerms" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--gold)">';
@@ -1149,22 +1157,37 @@ var App = {
     var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var country = g('coCountry'), stateF = g('coState'), city = g('coCity'), district = g('coDistrict');
     var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode');
+    var codeVal = g('coCode').toUpperCase();
     var terms = document.getElementById('coTerms');
     if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
     if(!country || !city || !name || !phone || !address){ this.toast('Please fill in all required fields'); return; }
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
     var orderId = 'HHZ-'+Date.now().toString(36).toUpperCase();
+    var codeInfo = null;
+    if(codeVal && state.codes && state.codes.length){
+      codeInfo = state.codes.find(function(c){ return c.code === codeVal && c.active !== false; });
+    }
     var msg = '🛒 *NEW ORDER*\nOrder: '+orderId+'\n\n*ITEMS:*\n';
     state.cart.forEach(function(item){ var sz = item.size ? ' (EU '+item.size+')' : ''; var sp = item.spec ? ' — '+item.spec : ''; msg += '• '+item.name+sz+sp+' × '+item.qty+' = €'+(item.price*item.qty).toFixed(2)+'\n'; });
     msg += '📦 *Subtotal:* €'+subtotal.toFixed(2)+'\n🚚 *Shipping:* FREE\n💰 *Total:* €'+subtotal.toFixed(2)+'\n\n*SHIPPING:*\n👤 '+name+'\n📞 '+phone+'\n📍 '+address+', '+district+', '+city+', '+stateF+', '+country+' '+postcode+'\n\n⏱ *Est. delivery:* 8-15 business days\n\n📋 *Policy:* Cancel within 24h · No refunds after shipment unless lost or missing parts\n\n💬 *Note:* Prices are negotiable. Please confirm total.';
+    if(codeInfo){
+      var commission = codeInfo.commission || 3;
+      msg += '\n\n🎫 *CODE:* '+codeInfo.code+' ('+codeInfo.workerName+') — €'+commission.toFixed(2)+' commission';
+    }
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
       total:subtotal, subtotal:subtotal, shipping:0,
       shippingInfo:{name:name, phone:phone, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
+      code: codeInfo ? { code:codeInfo.code, worker:codeInfo.workerName, commission:codeInfo.commission } : null,
       status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString()
     };
     state.orders.unshift(order);
     saveOrders(state.orders);
+    if(codeInfo){
+      codeInfo.totalUsage = (codeInfo.totalUsage||0) + 1;
+      codeInfo.totalEarned = (codeInfo.totalEarned||0) + (codeInfo.commission||3);
+      if(codeInfo._ref) codeInfo._ref.update({totalUsage:codeInfo.totalUsage,totalEarned:codeInfo.totalEarned}).catch(function(){});
+    }
     state.cart = []; saveCart(state.cart);
     App.updateBadge();
     var waMsg = encodeURIComponent(msg);
@@ -1282,7 +1305,8 @@ var App = {
     var totalProducts = state.products.length;
     var totalOrders = state.orders.length;
     var totalRevenue = state.orders.reduce(function(s,o){ return s + (o.total||0); }, 0);
-    document.getElementById('adminDashboard').innerHTML = '<div class="admin-dash-grid"><div class="admin-dash-card"><div class="num">'+totalProducts+'</div><div class="label">Products</div></div><div class="admin-dash-card"><div class="num">'+totalOrders+'</div><div class="label">Orders</div></div><div class="admin-dash-card"><div class="num">€'+totalRevenue.toFixed(2)+'</div><div class="label">Revenue</div></div><div class="admin-dash-card"><div class="num">'+state.categories.length+'</div><div class="label">Categories</div></div></div>';
+    var totalCodesEarned = state.codes.reduce(function(s,c){ return s + (c.totalEarned||0); }, 0);
+    document.getElementById('adminDashboard').innerHTML = '<div class="admin-dash-grid"><div class="admin-dash-card"><div class="num">'+totalProducts+'</div><div class="label">Products</div></div><div class="admin-dash-card"><div class="num">'+totalOrders+'</div><div class="label">Orders</div></div><div class="admin-dash-card"><div class="num">€'+totalRevenue.toFixed(2)+'</div><div class="label">Revenue</div></div><div class="admin-dash-card"><div class="num">€'+totalCodesEarned.toFixed(2)+'</div><div class="label">Codes Earned</div></div></div>';
     document.querySelectorAll('#adminTabs .tab, #page-admin .admin-section').forEach(function(el){
       if(el.classList.contains('tab')) el.classList.toggle('active', el.dataset.tab === self.adminTab);
       if(el.classList.contains('admin-section')) el.classList.toggle('active', el.id === 'admin'+self.adminTab.charAt(0).toUpperCase()+self.adminTab.slice(1));
@@ -1291,6 +1315,7 @@ var App = {
       case 'products': this.renderAdminProducts(isAdmin); break;
       case 'add': this.renderAdminAdd(isAdmin); break;
       case 'workers': if(isAdmin) this.renderAdminWorkers(); break;
+      case 'codes': if(isAdmin) this.renderAdminCodes(); break;
       case 'categories': if(isAdmin) this.renderAdminCategories(); break;
       case 'orders': this.renderAdminOrders(); break;
       case 'settings': if(isAdmin) this.renderAdminSettings(); break;
@@ -1585,6 +1610,78 @@ var App = {
     });
   },
 
+  renderAdminCodes: function(){
+    document.getElementById('adminCodes').classList.add('active');
+    var self = this;
+    var html = '<h3 style="color:#fff;margin-bottom:8px;font-size:18px;padding-top:8px">Referral Codes</h3>';
+    html += '<p style="color:#888;font-size:13px;margin-bottom:16px">Create unique codes for workers. Customers can enter a CODE at checkout for a chance to win free socks — you\'ll see the code in the WhatsApp order.</p>';
+    html += '<div class="admin-form" style="margin-bottom:16px;padding:14px;background:#111;border-radius:10px;border:1px solid #1a1a1a">';
+    html += '<h4 style="color:#fff;font-size:14px;margin-bottom:10px">Add New Code</h4>';
+    html += '<div class="form-row"><div><label>CODE</label><input id="cf_code" placeholder="e.g. CODE123" style="text-transform:uppercase"></div>';
+    html += '<div><label>Worker Name</label><input id="cf_worker" placeholder="e.g. John"></div></div>';
+    html += '<div class="form-row"><div><label>Commission (€)</label><input id="cf_commission" type="number" step="0.5" value="3" style="width:100%"></div>';
+    html += '<div style="display:flex;align-items:flex-end"><button class="btn-save" onclick="App.saveCode()" style="margin-top:0">Add Code</button></div></div></div>';
+    html += '<div id="codesList"></div>';
+    document.getElementById('adminCodes').innerHTML = html;
+    this.renderCodesList();
+  },
+
+  renderCodesList: function(){
+    var self = this;
+    var codes = state.codes.slice();
+    var html = '';
+    if(!codes.length){
+      html = '<p style="color:#666;padding:16px 0">No codes created yet</p>';
+    } else {
+      codes.forEach(function(c, i){
+        var earned = (c.totalEarned||0).toFixed(2);
+        var used = c.totalUsage||0;
+        html += '<div class="admin-product"><div style="font-size:24px;font-weight:700;color:var(--gold);min-width:80px">'+esc(c.code)+'</div>';
+        html += '<div class="admin-product-info"><div class="name">'+esc(c.workerName)+'</div>';
+        html += '<div class="meta">€'+c.commission+' commission · Used '+used+'x · €'+earned+' earned</div></div>';
+        html += '<div class="admin-product-actions">';
+        html += '<button class="btn-edit" onclick="App.toggleCode('+i+')">'+(c.active===false?'Enable':'Disable')+'</button>';
+        html += '<button class="btn-del" onclick="App.deleteCode('+i+')">Delete</button></div></div>';
+      });
+    }
+    document.getElementById('codesList').innerHTML = html;
+  },
+
+  saveCode: function(){
+    var code = document.getElementById('cf_code').value.trim().toUpperCase();
+    var worker = document.getElementById('cf_worker').value.trim();
+    var commission = parseFloat(document.getElementById('cf_commission').value) || 3;
+    if(!code || !worker){ this.toast('Code and worker name required'); return; }
+    if(state.codes.find(function(c){ return c.code === code; })){ this.toast('Code already exists'); return; }
+    var self = this;
+    var data = { code:code, workerName:worker, commission:commission, active:true, totalUsage:0, totalEarned:0, createdAt:new Date().toISOString() };
+    DB.collection('codes').add(data).then(function(docRef){
+      data._ref = docRef;
+      state.codes.push(data);
+      document.getElementById('cf_code').value = '';
+      document.getElementById('cf_worker').value = '';
+      self.toast('Code added');
+      self.renderCodesList();
+    });
+  },
+
+  toggleCode: function(idx){
+    var c = state.codes[idx];
+    if(!c) return;
+    c.active = c.active === false ? true : false;
+    if(c._ref) c._ref.update({active:c.active}).catch(function(){});
+    this.renderCodesList();
+  },
+
+  deleteCode: function(idx){
+    if(!confirm('Delete this code?')) return;
+    var c = state.codes[idx];
+    if(!c) return;
+    state.codes.splice(idx, 1);
+    if(c._ref) c._ref.delete().catch(function(){});
+    this.renderCodesList();
+  },
+
   renderAdminCategories: function(){
     document.getElementById('adminCategories').classList.add('active');
     var html = '<h3 style="color:#fff;margin-bottom:16px;font-size:18px;padding-top:8px">Categories</h3>';
@@ -1624,7 +1721,8 @@ var App = {
           var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
           var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
           var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
-          html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
+          var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
+          html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
           html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
         });
         if(!count) html += '<p style="color:#666;padding:16px 0">No orders yet</p>';
@@ -1638,7 +1736,8 @@ var App = {
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
       var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
       var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
-      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
+      var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
+      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
       html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
     });
     document.getElementById('adminOrders').innerHTML = html;
