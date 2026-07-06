@@ -639,6 +639,8 @@ function loadOrders(){try{return JSON.parse(localStorage.getItem('hhz_orders'))|
 function saveOrders(o){localStorage.setItem('hhz_orders',JSON.stringify(o))}
 function loadSettings(){try{return JSON.parse(localStorage.getItem('hhz_settings'))||{theme:'dark',lang:'en'}}catch(e){return{theme:'dark',lang:'en'}}}
 function saveSettings(s){localStorage.setItem('hhz_settings',JSON.stringify(s));state.settings=s}
+function loadCached(k){try{return JSON.parse(localStorage.getItem('hhz_cache_'+k))||null}catch(e){return null}}
+function saveCache(k,v){localStorage.setItem('hhz_cache_'+k,JSON.stringify(v))}
 
 var App = {
   init: function(){
@@ -648,30 +650,29 @@ var App = {
     var self = this;
     state.cart = loadCart();
     state.orders = loadOrders();
+    state.products = loadCached('products') || [];
+    state.categories = loadCached('categories') || [];
     this.applyTheme();
-    var forceTimer = setTimeout(function(){
+    var loadedOnce = false;
+    var ready = function(){
+      if(loadedOnce) return;
+      loadedOnce = true;
       var ls = document.getElementById('loading-screen');
-      if(ls && !ls.classList.contains('hidden')){
-        ls.classList.add('hidden');
-        document.getElementById('app').classList.add('ready');
-        self.go('home');
-        self.updateBadge();
-        self.startHero();
-        self.startCount();
-      }
-    }, 1200);
+      if(ls) ls.classList.add('hidden');
+      document.getElementById('app').classList.add('ready');
+      self.go('home');
+      self.updateBadge();
+      self.startHero();
+      self.startCount();
+    };
+    if(state.products.length){ setTimeout(ready, 200); }
     this.loadData(function(){
-      clearTimeout(forceTimer);
-      setTimeout(function(){
-        var ls = document.getElementById('loading-screen');
-        if(ls) ls.classList.add('hidden');
-        document.getElementById('app').classList.add('ready');
-        self.go('home');
-        self.updateBadge();
-        self.startHero();
-        self.startCount();
-      }, 100);
+      saveCache('products', state.products);
+      saveCache('categories', state.categories);
+      if(!loadedOnce){ ready(); }
+      else { self.go(state.page || 'home'); }
     });
+    if(!state.products.length){ setTimeout(ready, 4000); }
   },
 
   applyTheme: function(){
