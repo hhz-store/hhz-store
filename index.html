@@ -849,7 +849,7 @@ var App = {
       document.getElementById('adminTitle').textContent = isAdmin ? 'Admin Panel' : 'Worker Panel';
       var tabs = document.getElementById('adminTabs');
       if(isAdmin){
-        tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="workers">Workers</button><button class="tab" data-tab="categories">Categories</button><button class="tab" data-tab="orders">Orders</button><button class="tab" data-tab="settings">Settings</button>';
+        tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="workers">Workers</button><button class="tab" data-tab="codes">Codes</button><button class="tab" data-tab="categories">Categories</button><button class="tab" data-tab="orders">Orders</button><button class="tab" data-tab="settings">Settings</button>';
       } else {
         tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="orders">Orders</button>';
       }
