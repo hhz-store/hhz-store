@@ -625,6 +625,7 @@ firebase.initializeApp({
 
 var DB = firebase.firestore();
 var AUTH = firebase.auth();
+DB.enablePersistence({synchronizeTabs:true}).catch(function(){});
 
 var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@hhz.ca', tiktok:'@.hhz.shop', whatsapp:'+32488225144', whatsappLink:'https://wa.me/32488225144' };
 
@@ -648,7 +649,19 @@ var App = {
     state.cart = loadCart();
     state.orders = loadOrders();
     this.applyTheme();
+    var forceTimer = setTimeout(function(){
+      var ls = document.getElementById('loading-screen');
+      if(ls && !ls.classList.contains('hidden')){
+        ls.classList.add('hidden');
+        document.getElementById('app').classList.add('ready');
+        self.go('home');
+        self.updateBadge();
+        self.startHero();
+        self.startCount();
+      }
+    }, 1200);
     this.loadData(function(){
+      clearTimeout(forceTimer);
       setTimeout(function(){
         var ls = document.getElementById('loading-screen');
         if(ls) ls.classList.add('hidden');
@@ -657,7 +670,7 @@ var App = {
         self.updateBadge();
         self.startHero();
         self.startCount();
-      }, 400);
+      }, 100);
     });
   },
 
@@ -689,42 +702,40 @@ var App = {
   loadData: function(cb){
     var self = this;
     var loaded = 0;
+    var defaultProducts = [
+      { id:'p1', name:'Dior B23 High Top', category:'shoes', price:125, description:'Dior Oblique high-top sneakers with iconic monogram canvas upper, round toe silhouette, and durable rubber sole. A luxury streetwear essential from Kim Jones\' exclusive collection.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.9, reviews:186, images:[] },
+      { id:'p2', name:'LV Trainer', category:'shoes', price:95, description:'Louis Vuitton Trainer sneakers designed by Virgil Abloh. Crafted from premium calf leather with signature LV Monogram, chunky silhouette, and iconic LV branding on the side.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Premium', rating:4.8, reviews:154, images:[] },
+      { id:'p3', name:'Off-White Jordan 4', category:'shoes', price:90, description:'Off-White x Air Jordan 4 collaboration with signature industrial design elements including zip tie, quotation marks, and exposed foam details. A Virgil Abloh masterpiece.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Collaboration', rating:4.9, reviews:223, images:[] },
+      { id:'p4', name:'Yeezy Slide', category:'shoes', price:60, description:'adidas Yeezy Slide with one-piece injected foam construction for lightweight comfort. Minimalist silhouette with serrated sole for traction. Perfect for casual everyday wear.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Essential', rating:4.6, reviews:312, images:[] },
+      { id:'p5', name:'Balenciaga Track', category:'shoes', price:135, description:'Balenciaga Track sneakers with complex layered mesh and panel construction. Chunky runner silhouette with multi-material upper, technical detailing, and exaggerated sole.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.7, reviews:98, images:[] },
+      { id:'p6', name:'Jordan 1 Low', category:'shoes', price:90, description:'Air Jordan 1 Low with classic silhouette and iconic Wings logo embossed on the heel. Premium leather upper with Air-Sole cushioning for all-day comfort and timeless style.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:267, images:[] },
+      { id:'p7', name:'New Balance 550', category:'shoes', price:90, description:'New Balance 550 sneakers with retro basketball-inspired design. Leather and mesh upper with ENCAP midsole technology for superior cushioning and support.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Trending', rating:4.6, reviews:145, images:[] },
+      { id:'p8', name:'Adidas Samba', category:'shoes', price:80, description:'Adidas Samba classic sneakers with clean iconic design. Leather upper with suede T-toe overlay, rubber cupsole, and signature 3-Stripes branding. A timeless trainer.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.5, reviews:198, images:[] },
+      { id:'p9', name:'Nike Air Force 1 Low', category:'shoes', price:70, description:'The iconic Nike Air Force 1 Low with full-length Air-Sole unit for responsive cushioning. Durable leather upper with classic perforation detailing and signature Swoosh.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:456, images:[] },
+      { id:'p10', name:'Air Jordan 1 High', category:'shoes', price:80, description:'The legendary Air Jordan 1 High OG. Premium leather upper with iconic Swoosh branding, Nike Air cushioning, and classic Wings logo. A true sneaker icon.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Icon', rating:4.8, reviews:389, images:[] },
+      { id:'p11', name:'Air Jordan 11', category:'shoes', price:90, description:'Air Jordan 11 with premium patent leather mudguard and mesh upper. Full-length Air-Sole unit with carbon fiber shank plate for responsive cushioning and stability.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Classic', rating:4.9, reviews:267, images:[] },
+      { id:'p12', name:'Air Jordan 4', category:'shoes', price:95, description:'Air Jordan 4 Retro with iconic wing eyelets and breathable mesh paneling. Visible Air-Sole unit in the heel for responsive cushioning and legendary comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.8, reviews:312, images:[] },
+      { id:'p13', name:'Nike Dunk Low', category:'shoes', price:85, description:'Nike Dunk Low with classic basketball-to-skateboarding silhouette. Leather upper with perforated toe box for breathability and padded low-cut collar for comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Popular', rating:4.7, reviews:334, images:[] },
+      { id:'p14', name:'Yeezy Foam Runner', category:'shoes', price:67, description:'Yeezy Foam Runner with innovative injected foam construction made from algae-based EVA. Lightweight, breathable, and sustainably crafted with unique organic silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Sustainable', rating:4.5, reviews:178, images:[] },
+      { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit woven upper for a sock-like fit. Signature side stripe with Boost midsole technology for unmatched energy return and comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] },
+      { id:'p16', name:'Colognes', category:'colognes', price:65, description:'Premium designer colognes 100ml-125ml. Top brands and exclusive fragrances. 💰 Bulk discount: buy more = pay less! Message us on WhatsApp for best pricing on multiple bottles.', sizes:null, badge:'Bestseller', rating:4.8, reviews:534, images:[] }
+    ];
+    var defaultCategories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 },{ id:'colognes', label:'Colognes', icon:'🧴', count:1 }];
+    function seedProducts(){ state.products.forEach(function(p){ DB.collection('products').doc(p.id).set(p); }); }
+    function seedCategories(){ state.categories.forEach(function(c){ DB.collection('categories').doc(c.id).set(c); }); }
     function check(){ loaded++; if(loaded >= 3) cb(); }
     DB.collection('products').get().then(function(snap){
       state.products = [];
       snap.forEach(function(d){ state.products.push(d.data()); });
-      if(!state.products.length){
-        state.products = [
-          { id:'p1', name:'Dior B23 High Top', category:'shoes', price:125, description:'Dior Oblique high-top sneakers with iconic monogram canvas upper, round toe silhouette, and durable rubber sole. A luxury streetwear essential from Kim Jones\' exclusive collection.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.9, reviews:186, images:[] },
-          { id:'p2', name:'LV Trainer', category:'shoes', price:95, description:'Louis Vuitton Trainer sneakers designed by Virgil Abloh. Crafted from premium calf leather with signature LV Monogram, chunky silhouette, and iconic LV branding on the side.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Premium', rating:4.8, reviews:154, images:[] },
-          { id:'p3', name:'Off-White Jordan 4', category:'shoes', price:90, description:'Off-White x Air Jordan 4 collaboration with signature industrial design elements including zip tie, quotation marks, and exposed foam details. A Virgil Abloh masterpiece.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Collaboration', rating:4.9, reviews:223, images:[] },
-          { id:'p4', name:'Yeezy Slide', category:'shoes', price:60, description:'adidas Yeezy Slide with one-piece injected foam construction for lightweight comfort. Minimalist silhouette with serrated sole for traction. Perfect for casual everyday wear.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Essential', rating:4.6, reviews:312, images:[] },
-          { id:'p5', name:'Balenciaga Track', category:'shoes', price:135, description:'Balenciaga Track sneakers with complex layered mesh and panel construction. Chunky runner silhouette with multi-material upper, technical detailing, and exaggerated sole.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Luxury', rating:4.7, reviews:98, images:[] },
-          { id:'p6', name:'Jordan 1 Low', category:'shoes', price:90, description:'Air Jordan 1 Low with classic silhouette and iconic Wings logo embossed on the heel. Premium leather upper with Air-Sole cushioning for all-day comfort and timeless style.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:267, images:[] },
-          { id:'p7', name:'New Balance 550', category:'shoes', price:90, description:'New Balance 550 sneakers with retro basketball-inspired design. Leather and mesh upper with ENCAP midsole technology for superior cushioning and support.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Trending', rating:4.6, reviews:145, images:[] },
-          { id:'p8', name:'Adidas Samba', category:'shoes', price:80, description:'Adidas Samba classic sneakers with clean iconic design. Leather upper with suede T-toe overlay, rubber cupsole, and signature 3-Stripes branding. A timeless trainer.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.5, reviews:198, images:[] },
-          { id:'p9', name:'Nike Air Force 1 Low', category:'shoes', price:70, description:'The iconic Nike Air Force 1 Low with full-length Air-Sole unit for responsive cushioning. Durable leather upper with classic perforation detailing and signature Swoosh.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.7, reviews:456, images:[] },
-          { id:'p10', name:'Air Jordan 1 High', category:'shoes', price:80, description:'The legendary Air Jordan 1 High OG. Premium leather upper with iconic Swoosh branding, Nike Air cushioning, and classic Wings logo. A true sneaker icon.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Icon', rating:4.8, reviews:389, images:[] },
-          { id:'p11', name:'Air Jordan 11', category:'shoes', price:90, description:'Air Jordan 11 with premium patent leather mudguard and mesh upper. Full-length Air-Sole unit with carbon fiber shank plate for responsive cushioning and stability.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Classic', rating:4.9, reviews:267, images:[] },
-          { id:'p12', name:'Air Jordan 4', category:'shoes', price:95, description:'Air Jordan 4 Retro with iconic wing eyelets and breathable mesh paneling. Visible Air-Sole unit in the heel for responsive cushioning and legendary comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], rating:4.8, reviews:312, images:[] },
-          { id:'p13', name:'Nike Dunk Low', category:'shoes', price:85, description:'Nike Dunk Low with classic basketball-to-skateboarding silhouette. Leather upper with perforated toe box for breathability and padded low-cut collar for comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Popular', rating:4.7, reviews:334, images:[] },
-          { id:'p14', name:'Yeezy Foam Runner', category:'shoes', price:67, description:'Yeezy Foam Runner with innovative injected foam construction made from algae-based EVA. Lightweight, breathable, and sustainably crafted with unique organic silhouette.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Sustainable', rating:4.5, reviews:178, images:[] },
-          { id:'p15', name:'Yeezy 350 V2', category:'shoes', price:90, description:'adidas Yeezy Boost 350 V2 with Primeknit woven upper for a sock-like fit. Signature side stripe with Boost midsole technology for unmatched energy return and comfort.', sizes:[36,37,38,39,40,41,42,43,44,45], badge:'Bestseller', rating:4.8, reviews:423, images:[] },
-          { id:'p16', name:'Colognes', category:'colognes', price:65, description:'Premium designer colognes 100ml-125ml. Top brands and exclusive fragrances. 💰 Bulk discount: buy more = pay less! Message us on WhatsApp for best pricing on multiple bottles.', sizes:null, badge:'Bestseller', rating:4.8, reviews:534, images:[] }
-        ];
-        state.products.forEach(function(p){ DB.collection('products').doc(p.id).set(p); });
-      }
+      if(!state.products.length){ state.products = defaultProducts.slice(); seedProducts(); }
       check();
-    }).catch(function(){ check(); });
+    }).catch(function(){ state.products = defaultProducts.slice(); check(); });
     DB.collection('categories').get().then(function(snap){
       state.categories = [];
       snap.forEach(function(d){ state.categories.push(d.data()); });
-      if(!state.categories.length){
-        state.categories = [{ id:'shoes', label:'Shoes', icon:'👟', count:15 },{ id:'colognes', label:'Colognes', icon:'🧴', count:1 }];
-        state.categories.forEach(function(c){ DB.collection('categories').doc(c.id).set(c); });
-      }
+      if(!state.categories.length){ state.categories = defaultCategories.slice(); seedCategories(); }
       check();
-    }).catch(function(){ check(); });
+    }).catch(function(){ state.categories = defaultCategories.slice(); check(); });
     DB.collection('codes').get().then(function(snap){
       state.codes = [];
       snap.forEach(function(d){ var c=d.data(); c._ref=d.ref; state.codes.push(c); });
@@ -750,11 +761,11 @@ var App = {
     document.getElementById('sidebarLogout').addEventListener('click', function(){ self.logout(); });
 
     var si = document.getElementById('searchInput');
-    if(si) si.addEventListener('input', function(){ self.search = this.value; self.renderCategories(); });
+    if(si) si.addEventListener('input', function(){ state.search = this.value; self.renderCategories(); });
 
     document.getElementById('categoryPills').addEventListener('click', function(e){
       var pill = e.target.closest('.pill');
-      if(pill){ self.filter = pill.dataset.filter || 'all'; self.renderCategories(); }
+      if(pill){ state.filter = pill.dataset.filter || 'all'; self.renderCategories(); }
     });
 
     document.getElementById('adminLoginBtn').addEventListener('click', function(){ self.login(); });
@@ -768,11 +779,11 @@ var App = {
 
     document.addEventListener('click', function(e){
       var btn = e.target.closest('.cart-inc');
-      if(btn){ self.cartQty(btn.dataset.id,1); return; }
+      if(btn){ self.cartQty(btn.dataset.key,1); return; }
       btn = e.target.closest('.cart-dec');
-      if(btn){ self.cartQty(btn.dataset.id,-1); return; }
+      if(btn){ self.cartQty(btn.dataset.key,-1); return; }
       btn = e.target.closest('.cart-rm');
-      if(btn){ self.cartQty(btn.dataset.id,-999); return; }
+      if(btn){ self.cartQty(btn.dataset.key,-999); return; }
     });
 
     document.addEventListener('click', function(e){ if(e.target.id === 'checkoutBtn') self.go('checkout'); });
@@ -924,7 +935,7 @@ var App = {
     var colognes = state.products.filter(function(p){ return p.category === 'colognes'; });
     var featured = state.products.filter(function(p){ return p.badge; }).slice(0,5);
     var html = '<div class="category-pills" style="padding-left:0;padding-right:0;margin-bottom:4px">';
-    state.categories.forEach(function(c){ html += '<button class="pill" onclick="App.go(\'categories\');setTimeout(function(){App.filter=\''+c.id+'\';App.renderCategories()},50)" style="flex-shrink:0">'+esc(c.icon)+' '+esc(c.label)+' <span class="count">('+c.count+')</span></button>'; });
+    state.categories.forEach(function(c){ html += '<button class="pill" onclick="App.go(\'categories\');setTimeout(function(){state.filter=\''+c.id+'\';App.renderCategories()},50)" style="flex-shrink:0">'+esc(c.icon)+' '+esc(c.label)+' <span class="count">('+c.count+')</span></button>'; });
     html += '</div>';
     if(featured.length){ html += '<div class="section"><div class="section-header"><div><div class="section-sub">🔥 Hottest Picks</div><h2 class="section-title">Trending Now</h2></div><a class="section-link" onclick="App.go(\'categories\')">View all →</a></div><div class="h-scroll">'; featured.forEach(function(p){ html += self.productCard(p); }); html += '</div></div>'; }
     html += '<div class="section" style="background:linear-gradient(135deg,rgba(139,92,246,.05),rgba(59,130,246,.03),rgba(10,10,10,0));border-top:1px solid rgba(139,92,246,.1);border-bottom:1px solid rgba(139,92,246,.1);margin:4px 0;padding:18px 16px;display:flex;align-items:center;gap:14px">';
@@ -1081,11 +1092,11 @@ var App = {
     if(spec) spec.value = '';
   },
 
-  cartQty: function(id, delta){
-    var item = state.cart.find(function(i){ return i.id === id; });
+  cartQty: function(key, delta){
+    var item = state.cart.find(function(i){ return i._key === key; });
     if(!item) return;
     item.qty += delta;
-    if(item.qty <= 0) state.cart = state.cart.filter(function(i){ return i.id !== id; });
+    if(item.qty <= 0) state.cart = state.cart.filter(function(i){ return i._key !== key; });
     saveCart(state.cart);
     this.renderCart();
     this.updateBadge();
@@ -1105,7 +1116,7 @@ var App = {
       var img = (p && p.images && p.images.length) ? p.images[0] : 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=64&h=64&fit=crop';
       html += '<div class="cart-item"><img class="cart-item-img" src="'+img+'" alt="'+esc(item.name)+'" loading="lazy">';
       html += '<div class="cart-item-info"><div class="cart-item-name">'+esc(item.name)+sz+'</div>'+sp+'<div class="cart-item-meta">€'+item.price.toFixed(2)+' each</div>';
-      html += '<div class="cart-item-actions"><button class="cart-dec" data-id="'+item.id+'" aria-label="Decrease">−</button><span class="qty">'+item.qty+'</span><button class="cart-inc" data-id="'+item.id+'" aria-label="Increase">+</button><button class="cart-item-remove cart-rm" data-id="'+item.id+'">Remove</button></div></div>';
+      html += '<div class="cart-item-actions"><button class="cart-dec" data-key="'+item._key+'" aria-label="Decrease">−</button><span class="qty">'+item.qty+'</span><button class="cart-inc" data-key="'+item._key+'" aria-label="Increase">+</button><button class="cart-item-remove cart-rm" data-key="'+item._key+'">Remove</button></div></div>';
       html += '<div class="cart-item-price">€'+(item.price*item.qty).toFixed(2)+'</div></div>';
     });
     html += '</div><div class="cart-summary"><div class="row"><span>Subtotal</span><span>€'+subtotal.toFixed(2)+'</span></div>';
@@ -1183,6 +1194,7 @@ var App = {
     };
     state.orders.unshift(order);
     saveOrders(state.orders);
+    DB.collection('orders').doc(orderId).set(order).catch(function(){});
     if(codeInfo){
       codeInfo.totalUsage = (codeInfo.totalUsage||0) + 1;
       codeInfo.totalEarned = (codeInfo.totalEarned||0) + (codeInfo.commission||3);
@@ -1590,7 +1602,7 @@ var App = {
         AUTH.signOut().then(function(){
           AUTH.signInWithEmailAndPassword(adminEmail, adminPass).then(function(){
             self.loadWorkerList();
-          }).catch(function(){});
+          }).catch(function(){ self.toast('Re-login failed, please sign in again'); });
         });
       });
     }).catch(function(err){
