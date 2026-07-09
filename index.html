@@ -1334,13 +1334,6 @@ var App = {
     var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var country = g('coCountry'), stateF = g('coState'), city = g('coCity'), district = g('coDistrict');
 
-    var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode');
-    var codeVal = g('coCode').toUpperCase();
-    var terms = document.getElementById('coTerms');
-    if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
-    if(!country || !city || !name || !phone || !address){ this.toast('Please fill in all required fields'); return; }
-
-
     var name = g('coName'), phone = g('coPhone'), email = g('coEmail'), address = g('coAddress'), postcode = g('coPostcode');
     var codeVal = g('coCode').toUpperCase();
     var terms = document.getElementById('coTerms');
@@ -1363,17 +1356,10 @@ var App = {
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
       total:subtotal, subtotal:subtotal, shipping:0,
-
-      shippingInfo:{name:name, phone:phone, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
-      code: codeInfo ? { code:codeInfo.code, worker:codeInfo.workerName, commission:codeInfo.commission } : null,
-      status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString()
-
-
       shippingInfo:{name:name, phone:phone, email:email, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
       code: codeInfo ? { code:codeInfo.code, worker:codeInfo.workerName, commission:codeInfo.commission } : null,
       status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString(),
       paymentStatus:'unpaid', trackingNumber:'', trackingUrl:''
-
     };
     state.orders.unshift(order);
     saveOrders(state.orders);
