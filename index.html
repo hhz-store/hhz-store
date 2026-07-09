@@ -717,6 +717,65 @@ var App = {
       else { self.go(state.page || 'home'); }
     });
     if(!state.products.length){ setTimeout(ready, 4000); }
+    if('Notification' in window && Notification.permission === 'default'){
+      Notification.requestPermission();
+    }
+    self._startOrderRefresh();
+  },
+
+  _newOrderCount: 0,
+
+  _notifyNewOrder: function(orderId, total){
+    this._newOrderCount++;
+    if('Notification' in window && Notification.permission === 'granted'){
+      try { new Notification('🛒 New Order!', { body: 'Order '+orderId+' — €'+total.toFixed(2), icon: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22 viewBox=%220 0 64 64%22%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2232%22 fill=%22%230a0a0a%22/%3E%3Ctext x=%2232%22 y=%2238%22 text-anchor=%22middle%22 font-family=%22Georgia%22 font-size=%2220%22 font-weight=%22bold%22 fill=%22%23ffffff%22%3EHHZ%3C/text%3E%3C/svg%3E' }); } catch(e){}
+    }
+    try {
+      var actx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = actx.createOscillator();
+      var gain = actx.createGain();
+      osc.connect(gain);
+      gain.connect(actx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, actx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.3);
+      osc.start(actx.currentTime);
+      osc.stop(actx.currentTime + 0.3);
+    } catch(e){}
+    if(this._newOrderCount > 0){
+      var dashNum = document.querySelector('.admin-dash-card .num');
+      if(dashNum && dashNum.closest('#adminDashboard')){
+        var ordersDash = document.querySelectorAll('.admin-dash-card')[1];
+        if(ordersDash) ordersDash.style.background = 'rgba(231,76,60,.15)';
+      }
+    }
+  },
+
+  _startOrderRefresh: function(){
+    var self = this;
+    if(self._orderRefreshInterval) clearInterval(self._orderRefreshInterval);
+    self._orderRefreshInterval = setInterval(function(){
+      if(self.adminTab === 'orders' && AUTH.currentUser){
+        DB.collection('orders').orderBy('date','desc').get().then(function(snap){
+          var fireOrders = [];
+          snap.forEach(function(d){ fireOrders.push(d.data()); });
+          var merged = fireOrders.slice();
+          state.orders.forEach(function(lo){
+            if(!merged.find(function(mo){ return mo.id === lo.id; })){ merged.push(lo); }
+          });
+          var prevIds = state.orders.map(function(o){ return o.id; }).sort().join(',');
+          state.orders = merged;
+          saveOrders(state.orders);
+          var newIds = state.orders.map(function(o){ return o.id; }).sort().join(',');
+          if(prevIds !== newIds && state.orders.length){
+            var newest = state.orders[0];
+            if(newest) self._notifyNewOrder(newest.id, newest.total);
+          }
+          self.renderAdminOrders();
+        }).catch(function(){});
+      }
+    }, 15000);
   },
 
   applyTheme: function(){
@@ -1371,8 +1430,7 @@ var App = {
     }
     state.cart = []; saveCart(state.cart);
     App.updateBadge();
-
-
+    App._notifyNewOrder(orderId, subtotal);
 
     var waMsg = encodeURIComponent(msg);
     window.location.href = 'https://wa.me/32488225144?text='+waMsg;
@@ -1496,7 +1554,9 @@ var App = {
     var totalOrders = state.orders.length;
     var totalRevenue = state.orders.reduce(function(s,o){ return s + (o.total||0); }, 0);
     var totalCodesEarned = state.codes.reduce(function(s,c){ return s + (c.totalEarned||0); }, 0);
-    document.getElementById('adminDashboard').innerHTML = '<div class="admin-dash-grid"><div class="admin-dash-card"><div class="num">'+totalProducts+'</div><div class="label">Products</div></div><div class="admin-dash-card"><div class="num">'+totalOrders+'</div><div class="label">Orders</div></div><div class="admin-dash-card"><div class="num">€'+totalRevenue.toFixed(2)+'</div><div class="label">Revenue</div></div><div class="admin-dash-card"><div class="num">€'+totalCodesEarned.toFixed(2)+'</div><div class="label">Codes Earned</div></div></div>';
+    var unpaidOrders = state.orders.filter(function(o){ return o.paymentStatus === 'unpaid' || o.status === 'Pending'; }).length;
+    var unpaidBadge = unpaidOrders > 0 ? ' <span style="font-size:11px;background:#e74c3c;color:#fff;border-radius:4px;padding:1px 6px;vertical-align:top">'+unpaidOrders+' unpaid</span>' : '';
+    document.getElementById('adminDashboard').innerHTML = '<div class="admin-dash-grid"><div class="admin-dash-card"><div class="num">'+totalProducts+'</div><div class="label">Products</div></div><div class="admin-dash-card" style="'+(unpaidOrders>0?'background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.3)':'')+'"><div class="num">'+totalOrders+unpaidBadge+'</div><div class="label">Orders</div></div><div class="admin-dash-card"><div class="num">€'+totalRevenue.toFixed(2)+'</div><div class="label">Revenue</div></div><div class="admin-dash-card"><div class="num">€'+totalCodesEarned.toFixed(2)+'</div><div class="label">Codes Earned</div></div></div>';
     document.querySelectorAll('#adminTabs .tab, #page-admin .admin-section').forEach(function(el){
       if(el.classList.contains('tab')) el.classList.toggle('active', el.dataset.tab === self.adminTab);
       if(el.classList.contains('admin-section')) el.classList.toggle('active', el.id === 'admin'+self.adminTab.charAt(0).toUpperCase()+self.adminTab.slice(1));
@@ -1898,50 +1958,33 @@ var App = {
     document.getElementById('adminOrders').classList.add('active');
     var self = this;
     var html = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3>';
-    var showOrders = state.orders.slice();
-    if(!showOrders.length){
-      html += '<p style="color:#666;padding:16px 0">Loading orders...</p>';
-      document.getElementById('adminOrders').innerHTML = html;
-      DB.collection('orders').orderBy('date','desc').get().then(function(snap){
-        html = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3>';
-        var count = 0;
-        snap.forEach(function(d){
-          count++;
-          var o = d.data();
-
-          var date = new Date(o.date);
-          var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-          var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
-          var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
-          var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
-          html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
-          html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
-
-
-          html += self._adminOrderCard(o);
-
-        });
-        if(!count) html += '<p style="color:#666;padding:16px 0">No orders yet</p>';
-        document.getElementById('adminOrders').innerHTML = html;
-      }).catch(function(){
-        document.getElementById('adminOrders').innerHTML = html.replace('Loading orders...','No orders yet');
-      });
-      return;
-    }
-    showOrders.forEach(function(o){
-
-      var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-      var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
-      var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
-      var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
-      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
-      html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
-
-
-      html += self._adminOrderCard(o);
-
-    });
+    html += '<p style="color:#666;padding:16px 0">Loading orders...</p>';
     document.getElementById('adminOrders').innerHTML = html;
+    DB.collection('orders').orderBy('date','desc').get().then(function(snap){
+      var fireOrders = [];
+      snap.forEach(function(d){ fireOrders.push(d.data()); });
+      var merged = fireOrders.slice();
+      state.orders.forEach(function(lo){
+        if(!merged.find(function(mo){ return mo.id === lo.id; })){ merged.push(lo); }
+      });
+      state.orders = merged;
+      saveOrders(state.orders);
+      if(!state.orders.length){
+        document.getElementById('adminOrders').innerHTML = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3><p style="color:#666;padding:16px 0">No orders yet</p>';
+        return;
+      }
+      var listHtml = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3>';
+      state.orders.forEach(function(o){ listHtml += self._adminOrderCard(o); });
+      document.getElementById('adminOrders').innerHTML = listHtml;
+    }).catch(function(){
+      if(!state.orders.length){
+        document.getElementById('adminOrders').innerHTML = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3><p style="color:#666;padding:16px 0">No orders yet</p>';
+        return;
+      }
+      var listHtml = '<h3 style="color:#fff;margin-bottom:12px;font-size:18px;padding-top:8px">Orders</h3>';
+      state.orders.forEach(function(o){ listHtml += self._adminOrderCard(o); });
+      document.getElementById('adminOrders').innerHTML = listHtml;
+    });
   },
 
   _adminOrderCard: function(o){
@@ -1956,8 +1999,14 @@ var App = {
     var html = '<div class="order-card" id="aocard_'+esc(o.id)+'"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
     html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+(emailInfo?' · 📧 '+emailInfo:'')+'</div>';
     html += '<div style="font-size:12px;color:#888;margin-top:4px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
+    if(o.status === 'Pending'){
+      html += '<button class="btn-edit" style="font-size:11px;padding:2px 8px;background:rgba(16,185,129,.15);color:#10b981;font-weight:600" onclick="App.confirmOrder(\''+esc(o.id)+'\')">Confirm ✓</button>';
+    }
     html += '<span>💳 Payment: '+psBadge+'</span>';
     html += '<button class="btn-edit" style="font-size:11px;padding:2px 8px" onclick="App.togglePayment(\''+esc(o.id)+'\')">Toggle</button>';
+    if(o.paymentStatus === 'unpaid' || o.status === 'Pending'){
+      html += '<button class="btn-del" style="font-size:11px;padding:2px 8px" onclick="App.deleteOrder(\''+esc(o.id)+'\')">Delete</button>';
+    }
     html += '<span>📮 Tracking: '+(o.trackingNumber?'<a href="'+esc(o.trackingUrl||'')+'" target="_blank" rel="noopener" style="color:var(--gold)">'+esc(o.trackingNumber)+'</a>':'<span style="color:#666">—</span>')+'</span>';
     html += '<span><input id="trk_'+esc(o.id)+'" placeholder="Tracking #" value="'+esc(o.trackingNumber||'')+'" style="width:120px;padding:3px 6px;border-radius:4px;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:12px"></span>';
     html += '<span><input id="trkUrl_'+esc(o.id)+'" placeholder="Tracking URL" value="'+esc(o.trackingUrl||'')+'" style="width:140px;padding:3px 6px;border-radius:4px;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:12px"></span>';
@@ -1981,6 +2030,48 @@ var App = {
     self.toast('Payment marked as '+newStatus);
   },
 
+  confirmOrder: function(orderId){
+    var self = this;
+    var order = state.orders.find(function(o){ return o.id === orderId; });
+    if(!order){ self.toast('Order not found'); return; }
+    if(order.status !== 'Pending'){ self.toast('Order already processed'); return; }
+    order.status = 'Confirmed';
+    saveOrders(state.orders);
+    DB.collection('orders').where('id','==',orderId).get().then(function(snap){
+      snap.forEach(function(doc){ doc.ref.update({status:'Confirmed', confirmedAt:new Date().toISOString()}); });
+    }).catch(function(){});
+    var card = document.getElementById('aocard_'+orderId);
+    if(card) card.outerHTML = self._adminOrderCard(order);
+    var items = order.items.map(function(i){
+      var sz = i.size ? ' (EU '+i.size+')' : '';
+      var sp = i.spec ? ' — '+i.spec : '';
+      return '• '+i.name+sz+sp+' × '+i.qty+' = €'+(i.price*i.qty).toFixed(2);
+    }).join('\n');
+    var msg = '🛒 *ORDER CONFIRMED*\n\nOrder: '+order.id+'\n\nThank you for your order! It has been confirmed and is being processed.\n\n📦 *ITEMS:*\n'+items+'\n\n💰 *Total:* €'+order.total.toFixed(2)+'\n\n📮 *Shipping to:*\n'+order.shippingInfo.name+'\n📍 '+order.shippingInfo.address+', '+order.shippingInfo.city+', '+order.shippingInfo.country+'\n\n⏱ *Est. delivery:* 8-15 business days\n\nThank you for shopping with HHZ! 💫';
+    self._waNotify(order.shippingInfo.phone, msg);
+    self.toast('Order confirmed & WhatsApp sent');
+  },
+
+  _waNotify: function(phone, msg){
+    phone = phone.replace(/[^0-9]/g, '');
+    if(phone.startsWith('0')) phone = phone.slice(1);
+    if(!phone) return;
+    var url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+  },
+
+  deleteOrder: function(orderId){
+    if(!confirm('Delete order '+orderId+'? This cannot be undone.')) return;
+    var self = this;
+    state.orders = state.orders.filter(function(o){ return o.id !== orderId; });
+    saveOrders(state.orders);
+    DB.collection('orders').where('id','==',orderId).get().then(function(snap){
+      snap.forEach(function(doc){ doc.ref.delete(); });
+    }).catch(function(){});
+    self.toast('Order deleted');
+    self.renderAdminOrders();
+  },
+
   saveTracking: function(orderId){
     var self = this;
     var tn = document.getElementById('trk_'+orderId);
@@ -1998,6 +2089,11 @@ var App = {
     var card = document.getElementById('aocard_'+orderId);
     if(card) card.outerHTML = self._adminOrderCard(order);
     self.toast('Tracking saved');
+    if(trackingNumber){
+      var phone = order.shippingInfo.phone;
+      var msg = '📮 *TRACKING UPDATE*\n\nOrder: '+order.id+'\n\nYour order has been shipped! Here is your tracking information:\n\n📮 Tracking Number: '+trackingNumber+(trackingUrl?'\n🔗 Track: '+trackingUrl:'')+'\n\nThank you for shopping with HHZ! 💫';
+      self._waNotify(phone, msg);
+    }
   },
 
   renderAdminReviews: function(){
