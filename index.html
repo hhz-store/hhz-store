@@ -649,6 +649,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
 firebase.initializeApp({
@@ -670,12 +671,12 @@ var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@h
 
 
 
-var EMAIL_SERVER = 'YOUR_RENDER_URL_HERE'; // e.g. 'https://hhz-email-server.onrender.com'
+emailjs.init('nM_pgZ3lG9P-XCXK2');
+var EJ_SERVICE = 'service_0u097j8';
+var EJ_TEMPLATE = 'template_iwt4y2v';
 
-function sendEmail(endpoint, data, cb){
-  if(!EMAIL_SERVER || EMAIL_SERVER === 'YOUR_RENDER_URL_HERE'){ if(cb) cb(null); return; }
-  fetch(EMAIL_SERVER + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
-    .then(function(r){ return r.json(); }).then(function(r){ if(cb) cb(r); }).catch(function(){ if(cb) cb(null); });
+function sendEJ(template, params, cb){
+  emailjs.send(EJ_SERVICE, template, params).then(function(r){ if(cb) cb(r); }).catch(function(){ if(cb) cb(null); });
 }
 
 
@@ -1395,7 +1396,16 @@ var App = {
 
 
     if(email){
-      sendEmail('/api/send-order-confirmation', order, function(){});
+      sendEJ(EJ_TEMPLATE, {
+        type: 'order',
+        to_email: order.shippingInfo.email,
+        to_name: order.shippingInfo.name,
+        order_id: order.id,
+        order_items: order.items.map(function(i){ return i.name+' x'+i.qty }).join(', '),
+        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
+        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
+        order_code: order.code ? order.code.code : 'None'
+      }, function(){});
     }
 
     var waMsg = encodeURIComponent(msg);
@@ -2004,8 +2014,19 @@ var App = {
     if(card) card.outerHTML = self._adminOrderCard(order);
     self.toast('Payment marked as '+newStatus);
     if(newStatus === 'paid' && order.shippingInfo && order.shippingInfo.email){
-      sendEmail('/api/send-payment-confirmation', order, function(r){
-        if(r && r.success) self.toast('Payment confirmation email sent');
+      sendEJ(EJ_TEMPLATE, {
+        type: 'payment',
+        to_email: order.shippingInfo.email,
+        to_name: order.shippingInfo.name,
+        order_id: order.id,
+        order_items: order.items.map(function(i){ return i.name+' x'+i.qty }).join(', '),
+        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
+        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
+        order_code: order.code ? order.code.code : 'None',
+        tracking_number: '',
+        tracking_url: ''
+      }, function(r){
+        if(r) self.toast('Payment confirmation email sent');
       });
     }
   },
@@ -2028,8 +2049,19 @@ var App = {
     if(card) card.outerHTML = self._adminOrderCard(order);
     self.toast('Tracking saved');
     if(trackingNumber && order.shippingInfo && order.shippingInfo.email){
-      sendEmail('/api/send-tracking', { orderId:order.id, email:order.shippingInfo.email, name:order.shippingInfo.name, trackingNumber:trackingNumber, trackingUrl:trackingUrl }, function(r){
-        if(r && r.success) self.toast('Tracking email sent');
+      sendEJ(EJ_TEMPLATE, {
+        type: 'tracking',
+        to_email: order.shippingInfo.email,
+        to_name: order.shippingInfo.name,
+        order_id: order.id,
+        order_items: order.items ? order.items.map(function(i){ return i.name+' x'+i.qty }).join(', ') : '',
+        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
+        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
+        order_code: order.code ? order.code.code : 'None',
+        tracking_number: trackingNumber,
+        tracking_url: trackingUrl
+      }, function(r){
+        if(r) self.toast('Tracking email sent');
       });
     }
   },
