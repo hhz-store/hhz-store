@@ -390,6 +390,41 @@ body.light-theme .guide-card{background:#fafafa;border-color:#eee}
 body.light-theme .guide-card p{color:#666}
 body.light-theme .guide-card-detail{background:#f5f5f5;border-color:#eee}
 body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
+
+
+
+.review-section{padding:16px;border-top:1px solid #1a1a1a;margin-top:16px}
+.review-section h3{font-family:'Playfair Display',Georgia,serif;font-size:18px;color:#fff;margin-bottom:12px}
+.review-card{background:#111;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #1a1a1a}
+.review-card .r-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.review-card .r-name{font-weight:600;font-size:14px;color:#fff}
+.review-card .r-date{font-size:11px;color:#666}
+.review-card .r-stars{color:var(--gold);font-size:14px;margin-bottom:4px}
+.review-card .r-text{color:#bbb;font-size:13px;line-height:1.5}
+.review-form{background:#111;border-radius:10px;padding:16px;border:1px solid #1a1a1a;margin-top:16px}
+.review-form h4{font-size:14px;color:#fff;margin-bottom:10px;font-weight:600}
+.review-form .rf-row{display:flex;gap:10px;margin-bottom:10px}
+.review-form .rf-row input{flex:1;padding:10px;border-radius:6px;background:#1a1a1a;border:1px solid #222;color:#fff;font-size:14px}
+.review-form .rf-row input:focus{border-color:var(--gold);outline:none}
+.review-form .rf-stars{display:flex;gap:4px;margin-bottom:10px}
+.review-form .rf-stars button{font-size:24px;background:none;border:none;cursor:pointer;color:#444;transition:color .2s;padding:2px}
+.review-form .rf-stars button.active,.review-form .rf-stars button:hover{color:var(--gold)}
+.review-form textarea{width:100%;padding:10px;border-radius:6px;background:#1a1a1a;border:1px solid #222;color:#fff;font-size:14px;min-height:60px;resize:vertical;margin-bottom:10px}
+.review-form textarea:focus{border-color:var(--gold);outline:none}
+.review-form .btn-submit-review{width:100%;padding:12px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--accent-blue));color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.review-form .btn-submit-review:hover{opacity:.9}
+.review-form .rf-error{color:var(--danger);font-size:12px;margin-top:6px;display:none}
+.review-form .rf-success{color:var(--accent-emerald);font-size:12px;margin-top:6px;display:none}
+.admin-review-item{padding:14px;background:#111;border-radius:8px;margin-bottom:8px;border:1px solid #1a1a1a}
+.admin-review-item .ar-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.admin-review-item .ar-product{font-size:12px;color:var(--gold);font-weight:500}
+.admin-review-item .ar-name{font-weight:600;font-size:14px;color:#fff}
+.admin-review-item .ar-meta{font-size:11px;color:#666}
+.admin-review-item .ar-stars{color:var(--gold);font-size:13px;margin:4px 0}
+.admin-review-item .ar-text{color:#aaa;font-size:13px;line-height:1.5;margin:4px 0}
+.admin-review-item .ar-actions{display:flex;gap:6px;margin-top:6px}
+.review-loading{text-align:center;padding:20px;color:#666;font-size:13px}
+
 </style>
 </head>
 <body>
@@ -584,6 +619,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
         <button class="tab" data-tab="codes">Codes</button>
         <button class="tab" data-tab="categories">Categories</button>
         <button class="tab" data-tab="orders">Orders</button>
+        <button class="tab" data-tab="reviews">Reviews</button>
         <button class="tab" data-tab="settings">Settings</button>
       </div>
       <div class="admin-section active" id="adminProducts"></div>
@@ -592,6 +628,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
       <div class="admin-section" id="adminCodes"></div>
       <div class="admin-section" id="adminCategories"></div>
       <div class="admin-section" id="adminOrders"></div>
+      <div class="admin-section" id="adminReviews"></div>
       <div class="admin-section" id="adminSettings"></div>
     </section>
   </main>
@@ -618,6 +655,7 @@ firebase.initializeApp({
   apiKey: "AIzaSyCiHcdjU7f09Zpr0sNyghjxGx7xJAJNpkA",
   authDomain: "hhz-store.firebaseapp.com",
   projectId: "hhz-store",
+  storageBucket: "hhz-store.firebasestorage.app",
   messagingSenderId: "717980075462",
   appId: "1:717980075462:web:2c1bd4be02f8cbbb239ec7",
   measurementId: "G-6KBBPRBHPX"
@@ -628,6 +666,18 @@ var AUTH = firebase.auth();
 DB.enablePersistence({synchronizeTabs:true}).catch(function(){});
 
 var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@hhz.ca', tiktok:'@.hhz.shop', whatsapp:'+32488225144', whatsappLink:'https://wa.me/32488225144' };
+
+
+
+
+var EMAIL_SERVER = 'YOUR_RENDER_URL_HERE'; // e.g. 'https://hhz-email-server.onrender.com'
+
+function sendEmail(endpoint, data, cb){
+  if(!EMAIL_SERVER || EMAIL_SERVER === 'YOUR_RENDER_URL_HERE'){ if(cb) cb(null); return; }
+  fetch(EMAIL_SERVER + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
+    .then(function(r){ return r.json(); }).then(function(r){ if(cb) cb(r); }).catch(function(){ if(cb) cb(null); });
+}
+
 
 var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], codes:[], detailImgs:[], detailImgIdx:0, settings:loadSettings() };
 
@@ -861,7 +911,12 @@ var App = {
       document.getElementById('adminTitle').textContent = isAdmin ? 'Admin Panel' : 'Worker Panel';
       var tabs = document.getElementById('adminTabs');
       if(isAdmin){
+
         tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="workers">Workers</button><button class="tab" data-tab="codes">Codes</button><button class="tab" data-tab="categories">Categories</button><button class="tab" data-tab="orders">Orders</button><button class="tab" data-tab="settings">Settings</button>';
+
+
+        tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="workers">Workers</button><button class="tab" data-tab="codes">Codes</button><button class="tab" data-tab="categories">Categories</button><button class="tab" data-tab="orders">Orders</button><button class="tab" data-tab="reviews">Reviews</button><button class="tab" data-tab="settings">Settings</button>';
+
       } else {
         tabs.innerHTML = '<button class="tab active" data-tab="products">Products</button><button class="tab" data-tab="add">Add Product</button><button class="tab" data-tab="orders">Orders</button>';
       }
@@ -950,23 +1005,33 @@ var App = {
     html += '<div style="background:linear-gradient(145deg,rgba(139,92,246,.08),#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid rgba(139,92,246,.1);transition:transform .3s ease,box-shadow .3s ease" onmouseenter="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 25px rgba(139,92,246,.12)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'\'"><span style="font-size:28px">📦</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Free Shipping</p><p style="color:#888;font-size:11px;margin-top:2px">Worldwide delivery</p></div>';
     html += '<div style="background:linear-gradient(145deg,rgba(6,182,212,.08),#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid rgba(6,182,212,.1);transition:transform .3s ease,box-shadow .3s ease" onmouseenter="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 25px rgba(6,182,212,.12)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'\'"><span style="font-size:28px">💬</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Price Negotiable</p><p style="color:#888;font-size:11px;margin-top:2px">Best deals on WhatsApp</p></div>';
     html += '<div style="background:linear-gradient(145deg,rgba(245,158,11,.08),#111);border-radius:12px;padding:18px 14px;text-align:center;border:1px solid rgba(245,158,11,.1);transition:transform .3s ease,box-shadow .3s ease" onmouseenter="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 8px 25px rgba(245,158,11,.12)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'\'"><span style="font-size:28px">⏱️</span><p style="color:#fff;font-size:13px;font-weight:600;margin-top:6px">Cancel Within 24h</p><p style="color:#888;font-size:11px;margin-top:2px">Easy cancellation</p></div></div>';
-    html += '<div class="section"><div class="section-header"><div><div class="section-sub">💬 Reviews</div><h2 class="section-title">What Our Clients Say</h2></div></div><div class="h-scroll">';
-    var testimonials = [
-      {stars:5,text:'"Amazing quality! The shoes arrived faster than expected and look exactly like the photos. Will definitely order again."',author:'— Alex M.'},
-      {stars:5,text:'"Great communication through WhatsApp. Got a fantastic deal on 3 pairs. Highly recommend HHZ!"',author:'— Sarah K.'},
-      {stars:4,text:'"First time ordering from here and I\'m impressed. The cologne is authentic and the price was unbeatable."',author:'— David R.'},
-      {stars:5,text:'"Been buying from HHZ for months now. Never been disappointed. Fast shipping, great products."',author:'— Jordan T.'},
-      {stars:5,text:'"The negotiation process was smooth and the team was super helpful. Got exactly what I wanted."',author:'— Priya S.'}
-    ];
-    testimonials.forEach(function(t){
-      var s = ''; for(var i=0;i<5;i++) s += i < t.stars ? '★' : '☆';
-      html += '<div class="testimonial-card"><div class="stars">'+s+'</div><div class="text">'+esc(t.text)+'</div><div class="author">— <strong>'+esc(t.author)+'</strong></div></div>';
-    });
-    html += '</div></div>';
+    html += '<div class="section"><div class="section-header"><div><div class="section-sub">💬 Reviews</div><h2 class="section-title">What Our Clients Say</h2></div></div><div class="h-scroll" id="homeReviewsScroll"><div class="review-loading">Loading reviews...</div></div></div>';
     html += '<div class="section" style="text-align:center;background:linear-gradient(135deg,rgba(139,92,246,.04),rgba(59,130,246,.03),rgba(10,10,10,0));border-top:1px solid rgba(139,92,246,.1);border-bottom:1px solid rgba(139,92,246,.1);margin:8px 0;padding:32px 16px">';
     html += '<p style="color:var(--gold);font-size:15px;margin-bottom:6px">💬 <strong>All prices negotiable</strong></p><p style="color:#888;font-size:14px;margin-bottom:20px">Message us on WhatsApp for the best deals &amp; bulk discounts</p>';
     html += '<a href="https://wa.me/32488225144" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;padding:16px 36px;background:linear-gradient(135deg,var(--gold),var(--accent-blue));color:#fff;border:none;border-radius:12px;font-weight:700;font-size:16px;transition:transform .3s ease,box-shadow .3s ease">💬 Chat on WhatsApp</a></div>';
     document.getElementById('homeContent').innerHTML = html;
+    this.loadHomeReviews();
+  },
+
+  loadHomeReviews: function(){
+    DB.collection('reviews').where('approved','==',true).orderBy('date','desc').limit(10).get().then(function(snap){
+      var scroll = document.getElementById('homeReviewsScroll');
+      if(!scroll) return;
+      var html = '';
+      var count = 0;
+      snap.forEach(function(doc){
+        count++;
+        var r = doc.data();
+        var s = ''; for(var i=0;i<5;i++) s += i < r.rating ? '★' : '☆';
+        var author = r.name || 'Anonymous';
+        html += '<div class="testimonial-card"><div class="stars">'+s+'</div><div class="text">"'+esc(r.text)+'"</div><div class="author">— <strong>'+esc(author)+'</strong></div></div>';
+      });
+      if(!count) html = '<p style="color:#888;font-size:13px;text-align:center;padding:20px 0">No reviews yet</p>';
+      scroll.innerHTML = html;
+    }).catch(function(){
+      var scroll = document.getElementById('homeReviewsScroll');
+      if(scroll) scroll.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:20px 0">Could not load reviews</p>';
+    });
   },
 
   renderCategories: function(){
@@ -1030,6 +1095,21 @@ var App = {
     html += '<p id="specError" style="color:#e74c3c;font-size:12px;margin-top:4px;display:none">Please specify which product you want</p></div>';
     html += '<input type="hidden" id="detailProductId" value="'+p.id+'">';
     html += '<button class="btn-add-cart" id="addToCartBtn">Add to Cart</button></div>';
+    // Reviews section
+    html += '<div class="review-section" id="reviewSection">';
+    html += '<h3>Customer Reviews</h3>';
+    html += '<div id="reviewsList"><div class="review-loading">Loading reviews...</div></div>';
+    html += '<div class="review-form" id="reviewForm">';
+    html += '<h4>Write a Review</h4>';
+    html += '<div class="rf-row"><input type="text" id="rfName" placeholder="Your name" maxlength="50"></div>';
+    html += '<div class="rf-stars" id="rfStars">';
+    for(var si=1;si<=5;si++) html += '<button type="button" data-val="'+si+'">★</button>';
+    html += '</div>';
+    html += '<textarea id="rfText" placeholder="Share your experience with this product..." maxlength="500"></textarea>';
+    html += '<button class="btn-submit-review" id="btnSubmitReview" data-pid="'+p.id+'">Submit Review</button>';
+    html += '<div class="rf-error" id="rfError"></div>';
+    html += '<div class="rf-success" id="rfSuccess">Thank you! Your review has been submitted and will appear after admin approval.</div>';
+    html += '</div></div>';
     document.getElementById('page-detail').innerHTML = html;
 
     document.querySelectorAll('.detail-img-dots .dot').forEach(function(dot){
@@ -1052,6 +1132,96 @@ var App = {
         App.updateGallery();
       }, {passive:true});
     }
+    // Load reviews
+    this.loadReviews(p.id, function(reviews){
+      var list = document.getElementById('reviewsList');
+      if(!list) return;
+      if(!reviews.length){
+        list.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:10px 0">No reviews yet. Be the first!</p>';
+        return;
+      }
+      list.innerHTML = '';
+      reviews.forEach(function(r){
+        var s = ''; for(var i=0;i<5;i++) s += i < r.rating ? '★' : '☆';
+        var d = new Date(r.date);
+        var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+        list.innerHTML += '<div class="review-card"><div class="r-header"><div><div class="r-name">'+esc(r.name)+'</div><div class="r-date">'+ds+'</div></div></div><div class="r-stars">'+s+'</div><div class="r-text">'+esc(r.text)+'</div></div>';
+      });
+    });
+    // Star rating click handler
+    document.querySelectorAll('#rfStars button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var val = parseInt(this.dataset.val);
+        document.querySelectorAll('#rfStars button').forEach(function(b,i){
+          b.classList.toggle('active', i < val);
+        });
+        this.closest('#reviewForm').dataset.rating = val;
+      });
+    });
+    // Submit review handler
+    document.getElementById('btnSubmitReview').addEventListener('click', function(){
+      App.submitReview(this.dataset.pid);
+    });
+  },
+
+  submitReview: function(productId){
+    var name = document.getElementById('rfName').value.trim();
+    var starsEl = document.getElementById('rfStars');
+    var rating = parseInt(starsEl.closest('#reviewForm').dataset.rating) || 0;
+    var text = document.getElementById('rfText').value.trim();
+    var errEl = document.getElementById('rfError');
+    var sucEl = document.getElementById('rfSuccess');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+    if(!name){ errEl.textContent = 'Please enter your name'; errEl.style.display = 'block'; return; }
+    if(!rating){ errEl.textContent = 'Please select a star rating'; errEl.style.display = 'block'; return; }
+    if(!text){ errEl.textContent = 'Please write your review'; errEl.style.display = 'block'; return; }
+    if(text.length < 10){ errEl.textContent = 'Review must be at least 10 characters'; errEl.style.display = 'block'; return; }
+    var review = {
+      productId: productId,
+      name: name,
+      rating: rating,
+      text: text,
+      date: new Date().toISOString(),
+      approved: false
+    };
+    DB.collection('reviews').add(review).then(function(){
+      document.getElementById('rfName').value = '';
+      document.getElementById('rfText').value = '';
+      starsEl.closest('#reviewForm').dataset.rating = 0;
+      document.querySelectorAll('#rfStars button').forEach(function(b){ b.classList.remove('active'); });
+      sucEl.style.display = 'block';
+      setTimeout(function(){ sucEl.style.display = 'none'; }, 3000);
+      // Reload reviews
+      App.loadReviews(productId, function(reviews){
+        var list = document.getElementById('reviewsList');
+        if(!list) return;
+        if(!reviews.length){
+          list.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:10px 0">No reviews yet. Be the first!</p>';
+          return;
+        }
+        list.innerHTML = '';
+        reviews.forEach(function(r){
+          var s = ''; for(var i=0;i<5;i++) s += i < r.rating ? '★' : '☆';
+          var d = new Date(r.date);
+          var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+          list.innerHTML += '<div class="review-card"><div class="r-header"><div><div class="r-name">'+esc(r.name)+'</div><div class="r-date">'+ds+'</div></div></div><div class="r-stars">'+s+'</div><div class="r-text">'+esc(r.text)+'</div></div>';
+        });
+      });
+    }).catch(function(err){
+      errEl.textContent = 'Error submitting review. Please try again.';
+      errEl.style.display = 'block';
+    });
+  },
+
+  loadReviews: function(productId, cb){
+    DB.collection('reviews').where('productId','==',productId).where('approved','==',true).orderBy('date','desc').get().then(function(snap){
+      var reviews = [];
+      snap.forEach(function(d){ reviews.push(d.data()); });
+      cb(reviews);
+    }).catch(function(){
+      cb([]);
+    });
   },
 
   updateGallery: function(){
@@ -1139,6 +1309,7 @@ var App = {
       { id:'coDistrict', label:'District / Area', type:'text', ph:'Optional' },
       { id:'coName', label:'Full Name', type:'text', ph:'John Doe' },
       { id:'coPhone', label:'Phone Number', type:'tel', ph:'+1 234 567 890' },
+      { id:'coEmail', label:'Email (for order updates & tracking)', type:'email', ph:'you@example.com' },
       { id:'coAddress', label:'Shipping Address', type:'text', ph:'Street, building, apartment' },
       { id:'coPostcode', label:'Postcode / ZIP', type:'text', ph:'10001' }
     ];
@@ -1168,11 +1339,20 @@ var App = {
   placeOrder: function(){
     var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var country = g('coCountry'), stateF = g('coState'), city = g('coCity'), district = g('coDistrict');
+
     var name = g('coName'), phone = g('coPhone'), address = g('coAddress'), postcode = g('coPostcode');
     var codeVal = g('coCode').toUpperCase();
     var terms = document.getElementById('coTerms');
     if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
     if(!country || !city || !name || !phone || !address){ this.toast('Please fill in all required fields'); return; }
+
+
+    var name = g('coName'), phone = g('coPhone'), email = g('coEmail'), address = g('coAddress'), postcode = g('coPostcode');
+    var codeVal = g('coCode').toUpperCase();
+    var terms = document.getElementById('coTerms');
+    if(!terms || !terms.checked){ this.toast('Please accept the Terms & Conditions'); return; }
+    if(!country || !city || !name || !phone || !email || !address){ this.toast('Please fill in all required fields'); return; }
+
     var subtotal = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
     var orderId = 'HHZ-'+Date.now().toString(36).toUpperCase();
     var codeInfo = null;
@@ -1189,9 +1369,17 @@ var App = {
     var order = {
       id:orderId, date:new Date().toISOString(), items:JSON.parse(JSON.stringify(state.cart)),
       total:subtotal, subtotal:subtotal, shipping:0,
+
       shippingInfo:{name:name, phone:phone, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
       code: codeInfo ? { code:codeInfo.code, worker:codeInfo.workerName, commission:codeInfo.commission } : null,
       status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString()
+
+
+      shippingInfo:{name:name, phone:phone, email:email, address:address, city:city, state:stateF, country:country, postcode:postcode, district:district},
+      code: codeInfo ? { code:codeInfo.code, worker:codeInfo.workerName, commission:codeInfo.commission } : null,
+      status:'Pending', termsAccepted:true, cancellableUntil:new Date(Date.now()+24*60*60*1000).toISOString(),
+      paymentStatus:'unpaid', trackingNumber:'', trackingUrl:''
+
     };
     state.orders.unshift(order);
     saveOrders(state.orders);
@@ -1203,6 +1391,13 @@ var App = {
     }
     state.cart = []; saveCart(state.cart);
     App.updateBadge();
+
+
+
+    if(email){
+      sendEmail('/api/send-order-confirmation', order, function(){});
+    }
+
     var waMsg = encodeURIComponent(msg);
     window.location.href = 'https://wa.me/32488225144?text='+waMsg;
   },
@@ -1245,7 +1440,13 @@ var App = {
         }
         if(o.status === 'Cancelled') cancelMsg = '<div class="o-cancelled">✕ Order cancelled</div>';
       }
-      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+o.total.toFixed(2)+'</div>'+cancelBtn+cancelMsg+'</div>';
+      var ps = (o.paymentStatus||'unpaid');
+      var psHtml = ps === 'paid' ? '<span style="color:#2ecc71;font-size:12px">💳 Payment: Paid</span>' : '<span style="color:#e74c3c;font-size:12px">💳 Payment: Unpaid</span>';
+      var trkHtml = '';
+      if(o.trackingNumber){
+        trkHtml = '<div style="font-size:12px;color:#888;margin-top:4px">📮 Tracking: '+(o.trackingUrl?'<a href="'+esc(o.trackingUrl)+'" target="_blank" rel="noopener" style="color:var(--gold)">'+esc(o.trackingNumber)+'</a>':'<span>'+esc(o.trackingNumber)+'</span>')+'</div>';
+      }
+      html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+'<div class="o-total">€'+o.total.toFixed(2)+'</div><div style="margin-top:6px">'+psHtml+trkHtml+'</div>'+cancelBtn+cancelMsg+'</div>';
     });
     container.innerHTML = html;
   },
@@ -1331,6 +1532,7 @@ var App = {
       case 'codes': if(isAdmin) this.renderAdminCodes(); break;
       case 'categories': if(isAdmin) this.renderAdminCategories(); break;
       case 'orders': this.renderAdminOrders(); break;
+      case 'reviews': if(isAdmin) this.renderAdminReviews(); break;
       case 'settings': if(isAdmin) this.renderAdminSettings(); break;
     }
   },
@@ -1730,6 +1932,7 @@ var App = {
         snap.forEach(function(d){
           count++;
           var o = d.data();
+
           var date = new Date(o.date);
           var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
           var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
@@ -1737,6 +1940,10 @@ var App = {
           var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
           html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
           html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
+
+
+          html += self._adminOrderCard(o);
+
         });
         if(!count) html += '<p style="color:#666;padding:16px 0">No orders yet</p>';
         document.getElementById('adminOrders').innerHTML = html;
@@ -1746,14 +1953,141 @@ var App = {
       return;
     }
     showOrders.forEach(function(o){
+
       var d = new Date(o.date); var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
       var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
       var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
       var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
       html += '<div class="order-card"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
       html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+'</div>'+cancelM+'</div>';
+
+
+      html += self._adminOrderCard(o);
+
     });
     document.getElementById('adminOrders').innerHTML = html;
+  },
+
+  _adminOrderCard: function(o){
+    var date = new Date(o.date);
+    var ds = date.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    var is = o.items.map(function(i){ var sz = i.size ? ' (EU '+i.size+')' : ''; var sp = i.spec ? ' — '+i.spec : ''; return i.name+sz+sp+' × '+i.qty; }).join(', ');
+    var cancelM = o.status === 'Cancelled' ? '<div class="o-cancelled">✕ Order cancelled</div>' : '';
+    var codeInfo = o.code ? esc(o.code.code)+' ('+esc(o.code.worker)+')' : null;
+    var emailInfo = o.shippingInfo && o.shippingInfo.email ? esc(o.shippingInfo.email) : '';
+    var ps = (o.paymentStatus||'unpaid');
+    var psBadge = ps === 'paid' ? '<span style="color:#2ecc71">● Paid</span>' : '<span style="color:#e74c3c">● Unpaid</span>';
+    var html = '<div class="order-card" id="aocard_'+esc(o.id)+'"><div class="o-header"><span class="o-id">'+esc(o.id)+'</span><span class="o-status">'+esc(o.status)+'</span></div><div class="o-date">'+ds+'</div><div class="o-items">'+esc(is)+'</div>'+(o.notes?'<div style="font-size:12px;color:#aaa;margin:4px 0;padding:6px;background:#1a1a1a;border-radius:4px">📋 '+esc(o.notes)+'</div>':'')+(codeInfo?'<div style="font-size:12px;color:var(--gold);margin:4px 0;padding:4px 0">🎫 CODE: '+codeInfo+'</div>':'')+'<div class="o-total">€'+(o.total||0).toFixed(2)+'</div>';
+    html += '<div style="font-size:12px;color:#888;margin-top:6px">📦 '+esc(o.shippingInfo.name)+' · '+esc(o.shippingInfo.city)+', '+esc(o.shippingInfo.country)+(emailInfo?' · 📧 '+emailInfo:'')+'</div>';
+    html += '<div style="font-size:12px;color:#888;margin-top:4px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
+    html += '<span>💳 Payment: '+psBadge+'</span>';
+    html += '<button class="btn-edit" style="font-size:11px;padding:2px 8px" onclick="App.togglePayment(\''+esc(o.id)+'\')">Toggle</button>';
+    html += '<span>📮 Tracking: '+(o.trackingNumber?'<a href="'+esc(o.trackingUrl||'')+'" target="_blank" rel="noopener" style="color:var(--gold)">'+esc(o.trackingNumber)+'</a>':'<span style="color:#666">—</span>')+'</span>';
+    html += '<span><input id="trk_'+esc(o.id)+'" placeholder="Tracking #" value="'+esc(o.trackingNumber||'')+'" style="width:120px;padding:3px 6px;border-radius:4px;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:12px"></span>';
+    html += '<span><input id="trkUrl_'+esc(o.id)+'" placeholder="Tracking URL" value="'+esc(o.trackingUrl||'')+'" style="width:140px;padding:3px 6px;border-radius:4px;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:12px"></span>';
+    html += '<button class="btn-edit" style="font-size:11px;padding:2px 8px" onclick="App.saveTracking(\''+esc(o.id)+'\')">Save</button>';
+    html += '</div>'+cancelM+'</div>';
+    return html;
+  },
+
+  togglePayment: function(orderId){
+    var self = this;
+    var order = state.orders.find(function(o){ return o.id === orderId; });
+    if(!order) return;
+    var newStatus = order.paymentStatus === 'paid' ? 'unpaid' : 'paid';
+    order.paymentStatus = newStatus;
+    saveOrders(state.orders);
+    DB.collection('orders').where('id','==',orderId).get().then(function(snap){
+      snap.forEach(function(doc){ doc.ref.update({paymentStatus:newStatus}); });
+    }).catch(function(){});
+    var card = document.getElementById('aocard_'+orderId);
+    if(card) card.outerHTML = self._adminOrderCard(order);
+    self.toast('Payment marked as '+newStatus);
+    if(newStatus === 'paid' && order.shippingInfo && order.shippingInfo.email){
+      sendEmail('/api/send-payment-confirmation', order, function(r){
+        if(r && r.success) self.toast('Payment confirmation email sent');
+      });
+    }
+  },
+
+  saveTracking: function(orderId){
+    var self = this;
+    var tn = document.getElementById('trk_'+orderId);
+    var tu = document.getElementById('trkUrl_'+orderId);
+    var trackingNumber = tn ? tn.value.trim() : '';
+    var trackingUrl = tu ? tu.value.trim() : '';
+    var order = state.orders.find(function(o){ return o.id === orderId; });
+    if(!order) return;
+    order.trackingNumber = trackingNumber;
+    order.trackingUrl = trackingUrl;
+    saveOrders(state.orders);
+    DB.collection('orders').where('id','==',orderId).get().then(function(snap){
+      snap.forEach(function(doc){ doc.ref.update({trackingNumber:trackingNumber, trackingUrl:trackingUrl}); });
+    }).catch(function(){});
+    var card = document.getElementById('aocard_'+orderId);
+    if(card) card.outerHTML = self._adminOrderCard(order);
+    self.toast('Tracking saved');
+    if(trackingNumber && order.shippingInfo && order.shippingInfo.email){
+      sendEmail('/api/send-tracking', { orderId:order.id, email:order.shippingInfo.email, name:order.shippingInfo.name, trackingNumber:trackingNumber, trackingUrl:trackingUrl }, function(r){
+        if(r && r.success) self.toast('Tracking email sent');
+      });
+    }
+  },
+
+  renderAdminReviews: function(){
+    var self = this;
+    document.getElementById('adminReviews').classList.add('active');
+    var html = '<h3 style="color:#fff;margin-bottom:16px;font-size:18px;padding-top:8px">Customer Reviews</h3>';
+    html += '<div id="adminReviewsList"><div class="review-loading">Loading reviews...</div></div>';
+    document.getElementById('adminReviews').innerHTML = html;
+    DB.collection('reviews').orderBy('date','desc').get().then(function(snap){
+      var list = document.getElementById('adminReviewsList');
+      if(!list) return;
+      var html = '<div style="margin-bottom:12px;font-size:13px;color:#888">Showing all reviews. Unapproved reviews highlighted.</div>';
+      var count = 0;
+      snap.forEach(function(doc){
+        count++;
+        var r = doc.data();
+        r._id = doc.id;
+        var p = self.getProduct(r.productId);
+        var pName = p ? p.name : 'Unknown Product';
+        var s = ''; for(var i=0;i<5;i++) s += i < r.rating ? '★' : '☆';
+        var d = new Date(r.date);
+        var ds = d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        var badge = r.approved ? '' : '<span style="background:rgba(231,76,60,.15);color:#e74c3c;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:8px">PENDING</span>';
+        var rowStyle = r.approved ? '' : ' style="background:rgba(231,76,60,.05);border-left:3px solid #e74c3c"';
+        var approveBtn = r.approved ? '' : '<button class="btn-edit" onclick="App.approveReview(\''+r._id+'\')">Approve</button>';
+        html += '<div class="admin-review-item" id="arev_'+r._id+'"'+rowStyle+'><div class="ar-header"><div><div class="ar-name">'+esc(r.name)+badge+'</div><div class="ar-product">📦 '+esc(pName)+'</div></div><div class="ar-meta">'+ds+'</div></div><div class="ar-stars">'+s+'</div><div class="ar-text">"'+esc(r.text)+'"</div><div class="ar-actions">'+approveBtn+'<button class="btn-del" onclick="App.deleteReview(\''+r._id+'\')">Delete</button></div></div>';
+      });
+      if(!count) html = '<p style="color:#666;text-align:center;padding:20px 0">No reviews yet</p>';
+      list.innerHTML = html;
+    }).catch(function(){
+      var list = document.getElementById('adminReviewsList');
+      if(list) list.innerHTML = '<p style="color:#666;text-align:center;padding:20px 0">Could not load reviews</p>';
+    });
+  },
+
+  approveReview: function(reviewId){
+    var self = this;
+    DB.collection('reviews').doc(reviewId).update({approved:true}).then(function(){
+      var el = document.getElementById('arev_'+reviewId);
+      if(el) el.remove();
+      self.toast('Review approved');
+    }).catch(function(){
+      self.toast('Error approving review');
+    });
+  },
+
+  deleteReview: function(reviewId){
+    if(!confirm('Delete this review?')) return;
+    var self = this;
+    DB.collection('reviews').doc(reviewId).delete().then(function(){
+      var el = document.getElementById('arev_'+reviewId);
+      if(el) el.remove();
+      self.toast('Review deleted');
+    }).catch(function(){
+      self.toast('Error deleting review');
+    });
   },
 
   renderAdminSettings: function(){
