@@ -1397,13 +1397,15 @@ var App = {
 
     if(email){
       sendEJ(EJ_TEMPLATE, {
-        type: 'order',
-        to_email: order.shippingInfo.email,
-        to_name: order.shippingInfo.name,
+        to_email: 'socialhhz@gmail.com',
+        to_name: 'HHZ Store',
+        customer_name: order.shippingInfo.name,
+        customer_email: order.shippingInfo.email,
+        customer_phone: order.shippingInfo.phone,
+        customer_address: order.shippingInfo.address + ', ' + order.shippingInfo.city + ' ' + order.shippingInfo.postcode,
         order_id: order.id,
         order_items: order.items.map(function(i){ return i.name+' x'+i.qty }).join(', '),
         order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
-        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
         order_code: order.code ? order.code.code : 'None'
       }, function(){});
     }
@@ -2013,22 +2015,6 @@ var App = {
     var card = document.getElementById('aocard_'+orderId);
     if(card) card.outerHTML = self._adminOrderCard(order);
     self.toast('Payment marked as '+newStatus);
-    if(newStatus === 'paid' && order.shippingInfo && order.shippingInfo.email){
-      sendEJ(EJ_TEMPLATE, {
-        type: 'payment',
-        to_email: order.shippingInfo.email,
-        to_name: order.shippingInfo.name,
-        order_id: order.id,
-        order_items: order.items.map(function(i){ return i.name+' x'+i.qty }).join(', '),
-        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
-        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
-        order_code: order.code ? order.code.code : 'None',
-        tracking_number: '',
-        tracking_url: ''
-      }, function(r){
-        if(r) self.toast('Payment confirmation email sent');
-      });
-    }
   },
 
   saveTracking: function(orderId){
@@ -2048,22 +2034,6 @@ var App = {
     var card = document.getElementById('aocard_'+orderId);
     if(card) card.outerHTML = self._adminOrderCard(order);
     self.toast('Tracking saved');
-    if(trackingNumber && order.shippingInfo && order.shippingInfo.email){
-      sendEJ(EJ_TEMPLATE, {
-        type: 'tracking',
-        to_email: order.shippingInfo.email,
-        to_name: order.shippingInfo.name,
-        order_id: order.id,
-        order_items: order.items ? order.items.map(function(i){ return i.name+' x'+i.qty }).join(', ') : '',
-        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
-        order_discount: order.discount ? '-' + order.discount + ' EUR' : 'None',
-        order_code: order.code ? order.code.code : 'None',
-        tracking_number: trackingNumber,
-        tracking_url: trackingUrl
-      }, function(r){
-        if(r) self.toast('Tracking email sent');
-      });
-    }
   },
 
   renderAdminReviews: function(){
