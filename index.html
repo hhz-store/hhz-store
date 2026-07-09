@@ -649,7 +649,7 @@ body.light-theme .guide-card .g-tip{background:rgba(0,0,0,.03)}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 
 <script>
 firebase.initializeApp({
@@ -671,13 +671,6 @@ var CONTACT = { email:'socialhhz@gmail.com', phone:'+32488225144', instagram:'@h
 
 
 
-emailjs.init('nM_pgZ3lG9P-XCXK2');
-var EJ_SERVICE = 'service_0u097j8';
-var EJ_TEMPLATE = 'template_iwt4y2v';
-
-function sendEJ(template, params, cb){
-  emailjs.send(EJ_SERVICE, template, params).then(function(r){ if(cb) cb(r); }).catch(function(){ if(cb) cb(null); });
-}
 
 
 var state = { page:'home', cart:[], orders:[], selectedSize:null, detailQty:1, heroIdx:0, filter:'all', search:'', adminTab:'products', editId:null, user:null, userRole:null, products:[], categories:[], codes:[], detailImgs:[], detailImgIdx:0, settings:loadSettings() };
@@ -1394,21 +1387,6 @@ var App = {
     App.updateBadge();
 
 
-
-    if(email){
-      sendEJ(EJ_TEMPLATE, {
-        to_email: 'socialhhz@gmail.com',
-        to_name: 'HHZ Store',
-        customer_name: order.shippingInfo.name,
-        customer_email: order.shippingInfo.email,
-        customer_phone: order.shippingInfo.phone,
-        customer_address: order.shippingInfo.address + ', ' + order.shippingInfo.city + ' ' + order.shippingInfo.postcode,
-        order_id: order.id,
-        order_items: order.items.map(function(i){ return i.name+' x'+i.qty }).join(', '),
-        order_total: (order.discount ? order.total - order.discount : order.total) + ' EUR',
-        order_code: order.code ? order.code.code : 'None'
-      }, function(){});
-    }
 
     var waMsg = encodeURIComponent(msg);
     window.location.href = 'https://wa.me/32488225144?text='+waMsg;
